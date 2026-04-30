@@ -238,7 +238,7 @@ export default function Checkout() {
           >
             <form onSubmit={handleSubmit} noValidate className="space-y-8">
               {/* Contact */}
-              <div className="bg-white rounded-2xl p-6 shadow-soft space-y-5">
+              <div className="bg-[#FAF7F2] rounded-2xl p-6 shadow-soft space-y-5">
                 <h2 className="font-serif text-xl font-medium text-titulo">Seus dados</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
@@ -278,7 +278,7 @@ export default function Checkout() {
               </div>
 
               {/* Address */}
-              <div className="bg-white rounded-2xl p-6 shadow-soft space-y-5">
+              <div className="bg-[#FAF7F2] rounded-2xl p-6 shadow-soft space-y-5">
                 <h2 className="font-serif text-xl font-medium text-titulo">Endereço de entrega</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -382,7 +382,7 @@ export default function Checkout() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="space-y-4"
           >
-            <div className="bg-white rounded-2xl p-6 shadow-soft">
+            <div className="bg-[#FAF7F2] rounded-2xl p-6 shadow-soft">
               <h2 className="font-serif text-xl font-medium text-titulo mb-5">Seu pedido</h2>
 
               <div className="space-y-4">
@@ -406,7 +406,7 @@ export default function Checkout() {
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.product.id, item.quantidade - 1)}
-                          className="w-5 h-5 rounded-full border border-[#EDE0DD] flex items-center justify-center hover:border-rosa text-subtexto"
+                          className="w-5 h-5 rounded-full border border-[#D4C4B0] flex items-center justify-center hover:border-rosa text-subtexto"
                         >
                           <Minus size={10} />
                         </button>
@@ -414,7 +414,7 @@ export default function Checkout() {
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.product.id, item.quantidade + 1)}
-                          className="w-5 h-5 rounded-full border border-[#EDE0DD] flex items-center justify-center hover:border-rosa text-subtexto"
+                          className="w-5 h-5 rounded-full border border-[#D4C4B0] flex items-center justify-center hover:border-rosa text-subtexto"
                         >
                           <Plus size={10} />
                         </button>
@@ -434,7 +434,7 @@ export default function Checkout() {
                 ))}
               </div>
 
-              <div className="mt-6 pt-4 border-t border-[#F5EDE4] space-y-2">
+              <div className="mt-6 pt-4 border-t border-[#D9CBB8] space-y-2">
                 <div className="flex justify-between text-sm text-subtexto">
                   <span>Subtotal</span>
                   <span>R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
@@ -450,7 +450,7 @@ export default function Checkout() {
                     Frete grátis nas compras acima de R$ 150,00
                   </p>
                 )}
-                <div className="flex justify-between font-serif text-lg font-medium text-titulo pt-2 border-t border-[#F5EDE4]">
+                <div className="flex justify-between font-serif text-lg font-medium text-titulo pt-2 border-t border-[#D9CBB8]">
                   <span>Total</span>
                   <span>R$ {finalTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
@@ -458,7 +458,7 @@ export default function Checkout() {
             </div>
 
             {/* Security badges */}
-            <div className="bg-white rounded-2xl p-5 shadow-soft">
+            <div className="bg-[#FAF7F2] rounded-2xl p-5 shadow-soft">
               <div className="flex items-center gap-2 text-subtexto text-xs mb-3">
                 <ShieldCheck size={15} className="text-green-500" />
                 <span className="font-medium text-titulo text-sm">Compra 100% segura</span>

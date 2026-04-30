@@ -33,26 +33,26 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: #FAFAF8;
+    background: #F5EFE6;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #F2A7BB;
+    background: #B8956A;
     border-radius: 3px;
   }
 
   ::selection {
-    background: #FDE8EE;
-    color: #2C2C2C;
+    background: #EDE5D8;
+    color: #2A2118;
   }
 }
 
 @layer components {
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full
-           bg-rosa text-white font-medium text-sm tracking-wide
+           bg-rosa text-[#FAF7F2] font-medium text-sm tracking-wide
            transition-all duration-300 ease-out
-           hover:bg-[#E894AA] hover:shadow-rose active:scale-[0.97]
+           hover:bg-[#9E7A52] hover:shadow-rose active:scale-[0.97]
            focus:outline-none focus:ring-2 focus:ring-rosa focus:ring-offset-2;
   }
 
@@ -66,14 +66,14 @@
 
   .btn-white {
     @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full
-           bg-white text-rosa font-medium text-sm tracking-wide
+           bg-[#FAF7F2] text-rosa font-medium text-sm tracking-wide
            transition-all duration-300 ease-out
            hover:bg-rosa-claro active:scale-[0.97]
-           focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2;
+           focus:outline-none focus:ring-2 focus:ring-[#FAF7F2] focus:ring-offset-2;
   }
 
   .card {
-    @apply bg-white rounded-2xl overflow-hidden shadow-soft
+    @apply bg-[#FAF7F2] rounded-2xl overflow-hidden shadow-soft
            transition-all duration-300 ease-out
            hover:shadow-soft-lg hover:-translate-y-1;
   }
@@ -92,12 +92,12 @@
 
   .badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium
-           bg-rosa-claro text-[#C06080] tracking-wide;
+           bg-rosa-claro text-[#8C6840] tracking-wide;
   }
 
   .input-field {
-    @apply w-full px-4 py-3 rounded-xl border border-[#EDE0DD]
-           bg-white text-titulo placeholder-subtexto text-sm
+    @apply w-full px-4 py-3 rounded-xl border border-[#D4C4B0]
+           bg-[#FAF7F2] text-titulo placeholder-subtexto text-sm
            transition-all duration-200
            focus:outline-none focus:ring-2 focus:ring-rosa focus:border-transparent;
   }

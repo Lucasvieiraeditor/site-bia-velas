@@ -70,7 +70,7 @@ export default function Products() {
     <>
       <main className="min-h-screen pt-16 bg-offwhite">
         {/* Header */}
-        <div className="bg-white border-b border-[#F5EDE4]">
+        <div className="bg-[#FAF7F2] border-b border-[#D9CBB8]">
           <div className="max-w-6xl mx-auto px-5 md:px-8 py-14 text-center">
             <ScrollReveal>
               <p className="text-xs font-medium text-dourado tracking-[0.15em] uppercase mb-3">
@@ -87,7 +87,7 @@ export default function Products() {
         </div>
 
         {/* Filters */}
-        <div className="sticky top-16 z-20 bg-white/95 backdrop-blur-sm border-b border-[#F5EDE4]">
+        <div className="sticky top-16 z-20 bg-[#F5EFE6]/95 backdrop-blur-sm border-b border-[#D9CBB8]">
           <div className="max-w-6xl mx-auto px-5 md:px-8 py-4">
             <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide pb-0.5">
               <SlidersHorizontal size={16} className="text-subtexto shrink-0" />
@@ -98,7 +98,7 @@ export default function Products() {
                   className={`shrink-0 px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                     activeCategory === cat
                       ? 'bg-rosa text-white shadow-rose'
-                      : 'bg-[#F5EDE4] text-subtexto hover:bg-rosa-claro hover:text-titulo'
+                      : 'bg-[#E4D8C8] text-subtexto hover:bg-rosa-claro hover:text-titulo'
                   }`}
                 >
                   {cat}
@@ -136,10 +136,10 @@ export default function Products() {
                   <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-soft animate-pulse">
                     <div className="aspect-[4/3] bg-rosa-claro/60" />
                     <div className="p-5 space-y-3">
-                      <div className="h-4 bg-[#F5EDE4] rounded-full w-3/4" />
-                      <div className="h-3 bg-[#F5EDE4] rounded-full w-1/2" />
-                      <div className="h-3 bg-[#F5EDE4] rounded-full w-full" />
-                      <div className="h-3 bg-[#F5EDE4] rounded-full w-2/3" />
+                      <div className="h-4 bg-[#E4D8C8] rounded-full w-3/4" />
+                      <div className="h-3 bg-[#E4D8C8] rounded-full w-1/2" />
+                      <div className="h-3 bg-[#E4D8C8] rounded-full w-full" />
+                      <div className="h-3 bg-[#E4D8C8] rounded-full w-2/3" />
                     </div>
                   </div>
                 ))}

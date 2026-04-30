@@ -52,7 +52,7 @@ export default function Confirmation() {
             </p>
 
             {orderId !== '—' && (
-              <div className="inline-flex items-center gap-2 bg-white rounded-full px-5 py-2.5 shadow-soft text-sm text-subtexto mt-2">
+              <div className="inline-flex items-center gap-2 bg-[#FAF7F2] rounded-full px-5 py-2.5 shadow-soft text-sm text-subtexto mt-2">
                 <span>Pedido</span>
                 <span className="font-medium text-titulo font-mono text-xs">
                   #{orderId.slice(0, 8).toUpperCase()}
@@ -66,7 +66,7 @@ export default function Confirmation() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.45 }}
-            className="mt-12 bg-white rounded-2xl p-7 shadow-soft text-left space-y-5"
+            className="mt-12 bg-[#FAF7F2] rounded-2xl p-7 shadow-soft text-left space-y-5"
           >
             <h2 className="font-serif text-xl font-medium text-titulo">O que acontece agora?</h2>
             <div className="space-y-4">

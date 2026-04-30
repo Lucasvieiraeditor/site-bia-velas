@@ -32,7 +32,7 @@ export default function Navbar() {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-          scrolled ? 'bg-white/95 backdrop-blur-sm shadow-soft' : 'bg-transparent'
+          scrolled ? 'bg-[#F5EFE6]/95 backdrop-blur-sm shadow-soft' : 'bg-transparent'
         }`}
       >
         <div className="max-w-6xl mx-auto px-5 md:px-8 h-16 flex items-center justify-between">
@@ -80,7 +80,7 @@ export default function Navbar() {
                   key={totalItems}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 min-w-[18px] min-h-[18px] flex items-center justify-center rounded-full bg-rosa text-white text-[10px] font-semibold leading-none px-1"
+                  className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 min-w-[18px] min-h-[18px] flex items-center justify-center rounded-full bg-rosa text-[#FAF7F2] text-[10px] font-semibold leading-none px-1"
                 >
                   {totalItems}
                 </motion.span>
@@ -107,7 +107,7 @@ export default function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed top-16 left-0 right-0 z-30 bg-white/98 backdrop-blur-sm shadow-soft-lg border-b border-[#F5EDE4] md:hidden"
+            className="fixed top-16 left-0 right-0 z-30 bg-[#F5EFE6]/98 backdrop-blur-sm shadow-soft-lg border-b border-[#D9CBB8] md:hidden"
           >
             <nav className="flex flex-col px-6 py-5 gap-4">
               {links.map(({ to, label }) => (

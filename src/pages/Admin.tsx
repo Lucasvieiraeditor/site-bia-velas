@@ -60,13 +60,13 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
           <h1 className="font-serif text-2xl font-medium text-titulo">Área Admin</h1>
           <p className="text-subtexto text-sm mt-1">Bia Velas Aromáticas</p>
           {!isSupabaseConfigured && (
-            <p className="text-xs text-dourado mt-2 bg-[#FFF3E0] rounded-lg px-3 py-2">
+            <p className="text-xs text-dourado mt-2 bg-[#EDE5D8] rounded-lg px-3 py-2">
               Modo demonstração — configure o Supabase para usar autenticação real.
             </p>
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8 shadow-soft space-y-5">
+        <form onSubmit={handleSubmit} className="bg-[#FAF7F2] rounded-2xl p-8 shadow-soft space-y-5">
           <div>
             <label className="label">E-mail</label>
             <input
@@ -127,7 +127,7 @@ function StatCard({
   color: string
 }) {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-soft">
+    <div className="bg-[#FAF7F2] rounded-2xl p-6 shadow-soft">
       <div className={`w-11 h-11 rounded-xl ${color} flex items-center justify-center mb-4`}>
         <Icon size={20} />
       </div>
@@ -222,9 +222,9 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.95, opacity: 0 }}
         transition={{ type: 'spring', damping: 20, stiffness: 260 }}
-        className="bg-white rounded-2xl shadow-soft-lg w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="bg-[#FAF7F2] rounded-2xl shadow-soft-lg w-full max-w-lg max-h-[90vh] overflow-y-auto"
       >
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[#F5EDE4]">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[#D9CBB8]">
           <h2 className="font-serif text-lg font-medium text-titulo">
             {initial ? 'Editar criação' : 'Nova criação'}
           </h2>
@@ -239,7 +239,7 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
             <label className="label">Imagem do produto</label>
             <div
               onClick={() => fileRef.current?.click()}
-              className="relative border-2 border-dashed border-[#EDE0DD] rounded-xl overflow-hidden cursor-pointer hover:border-rosa transition-colors aspect-video bg-rosa-claro/30"
+              className="relative border-2 border-dashed border-[#D4C4B0] rounded-xl overflow-hidden cursor-pointer hover:border-rosa transition-colors aspect-video bg-rosa-claro/30"
             >
               {form.imagem_url ? (
                 <img src={form.imagem_url} alt="" className="w-full h-full object-cover" />
@@ -329,10 +329,122 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
 // ── Status Badge ──────────────────────────────────────────────────────────────
 
 const statusConfig: Record<OrderStatus, { label: string; color: string }> = {
-  aguardando: { label: 'Aguardando', color: 'bg-[#FFF3E0] text-[#C9A96E]' },
+  aguardando: { label: 'Aguardando', color: 'bg-[#EDE5D8] text-[#9E7A52]' },
   pago: { label: 'Pago', color: 'bg-[#E8F5EE] text-[#3D8B5E]' },
   enviado: { label: 'Enviado', color: 'bg-[#E8EFF5] text-[#3D6B8B]' },
-  entregue: { label: 'Entregue', color: 'bg-rosa-claro text-[#C06080]' },
+  entregue: { label: 'Entregue', color: 'bg-rosa-claro text-[#8C6840]' },
+}
+
+// ── Order Detail Modal ────────────────────────────────────────────────────────
+
+function OrderDetailModal({
+  order,
+  onClose,
+  onStatusChange,
+}: {
+  order: Order
+  onClose: () => void
+  onStatusChange: (id: string, status: OrderStatus) => Promise<void>
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-titulo/40 backdrop-blur-[2px] flex items-center justify-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ type: 'spring', damping: 20, stiffness: 260 }}
+        className="bg-[#FAF7F2] rounded-2xl shadow-soft-lg w-full max-w-lg max-h-[90vh] overflow-y-auto"
+      >
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[#D9CBB8]">
+          <div className="flex items-center gap-2">
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusConfig[order.status].color}`}>
+              {statusConfig[order.status].label}
+            </span>
+            <span className="text-xs text-subtexto font-mono">#{order.id.slice(0, 8).toUpperCase()}</span>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-rosa-claro text-subtexto transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-5">
+          <div>
+            <h3 className="font-serif text-base font-medium text-titulo mb-3">Cliente</h3>
+            <div className="space-y-1 text-sm">
+              <p className="font-medium text-titulo">{order.cliente_nome}</p>
+              <p className="text-subtexto">{order.cliente_email}</p>
+              <p className="text-subtexto">{order.cliente_telefone}</p>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-[#D9CBB8]">
+            <h3 className="font-serif text-base font-medium text-titulo mb-3">Endereço de entrega</h3>
+            <div className="text-sm text-subtexto space-y-0.5">
+              <p>{order.endereco.rua}, {order.endereco.numero}</p>
+              {order.endereco.complemento && <p>{order.endereco.complemento}</p>}
+              <p>{order.endereco.bairro}</p>
+              <p>{order.endereco.cidade}, {order.endereco.estado} · CEP {order.endereco.cep}</p>
+            </div>
+          </div>
+
+          <div className="pt-1">
+            <p className="text-xs text-subtexto">
+              Pedido em {new Date(order.created_at).toLocaleString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+
+          <div className="pt-4 border-t border-[#D9CBB8]">
+            <h3 className="font-serif text-base font-medium text-titulo mb-3">Produtos</h3>
+            <div className="space-y-3">
+              {order.itens.map((item) => (
+                <div key={item.produto_id} className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl overflow-hidden bg-rosa-claro shrink-0">
+                    <img src={item.imagem_url} alt={item.nome} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-titulo line-clamp-1">{item.nome}</p>
+                    <p className="text-xs text-subtexto">{item.aroma} · x{item.quantidade}</p>
+                  </div>
+                  <p className="text-sm font-medium text-dourado shrink-0">
+                    R$ {(item.preco * item.quantidade).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-[#D9CBB8] flex items-center justify-between">
+            <span className="text-sm font-medium text-titulo">Total</span>
+            <span className="font-serif text-xl font-medium text-dourado">
+              R$ {order.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+
+          <div className="pt-4 border-t border-[#D9CBB8] flex items-center gap-2">
+            <span className="text-xs text-subtexto">Atualizar status:</span>
+            <div className="relative">
+              <select
+                value={order.status}
+                onChange={(e) => onStatusChange(order.id, e.target.value as OrderStatus)}
+                className="appearance-none bg-offwhite border border-[#D4C4B0] text-sm text-titulo rounded-lg pl-3 pr-7 py-1.5 cursor-pointer hover:border-rosa focus:outline-none focus:ring-1 focus:ring-rosa"
+              >
+                {(['aguardando', 'pago', 'enviado', 'entregue'] as OrderStatus[]).map((s) => (
+                  <option key={s} value={s}>{statusConfig[s].label}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-subtexto pointer-events-none" />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
 }
 
 // ── Main Admin Dashboard ───────────────────────────────────────────────────────
@@ -349,6 +461,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [newProduct, setNewProduct] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
 
   const load = useCallback(async () => {
     setLoadingData(true)
@@ -406,11 +519,37 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   useEffect(() => { load() }, [load])
 
   // Dashboard stats
-  const today = new Date().toDateString()
+  const now = new Date()
+  const today = now.toDateString()
+  const currentMonth = now.getMonth()
+  const currentYear = now.getFullYear()
+  const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']
+  const currentMonthName = monthNames[currentMonth]
   const ordersToday = orders.filter((o) => new Date(o.created_at).toDateString() === today)
-  const currentMonth = new Date().getMonth()
-  const ordersMonth = orders.filter((o) => new Date(o.created_at).getMonth() === currentMonth)
-  const totalRevenue = orders.filter((o) => o.status === 'pago' || o.status === 'enviado' || o.status === 'entregue').reduce((a, o) => a + o.valor_total, 0)
+  const ordersMonth = orders.filter((o) => {
+    const d = new Date(o.created_at)
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear
+  })
+  const isPaidStatus = (status: OrderStatus) => status === 'pago' || status === 'enviado' || status === 'entregue'
+  const revenueToday = ordersToday.filter((o) => isPaidStatus(o.status)).reduce((a, o) => a + o.valor_total, 0)
+  const revenueMonth = ordersMonth.filter((o) => isPaidStatus(o.status)).reduce((a, o) => a + o.valor_total, 0)
+  const formatDayLabel = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const yesterdayStr = new Date(Date.now() - 86400000).toDateString()
+    if (date.toDateString() === today) return 'Hoje'
+    if (date.toDateString() === yesterdayStr) return 'Ontem'
+    return date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' })
+  }
+  const groupedByDay = orders.reduce((acc, order) => {
+    const key = new Date(order.created_at).toDateString()
+    if (!acc[key]) acc[key] = { dateStr: order.created_at, count: 0, total: 0 }
+    acc[key].count++
+    acc[key].total += order.valor_total
+    return acc
+  }, {} as Record<string, { dateStr: string; count: number; total: number }>)
+  const sortedDays = Object.entries(groupedByDay).sort(
+    ([a], [b]) => new Date(b).getTime() - new Date(a).getTime(),
+  )
 
   const handleDeleteProduct = async (id: string) => {
     if (!window.confirm('Remover este produto da loja?')) return
@@ -479,7 +618,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="min-h-screen bg-offwhite">
       {/* Top bar */}
-      <header className="bg-white border-b border-[#F5EDE4] px-5 md:px-8 h-16 flex items-center justify-between sticky top-0 z-30">
+      <header className="bg-[#FAF7F2] border-b border-[#D9CBB8] px-5 md:px-8 h-16 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-2">
           <Flame size={18} className="text-rosa" />
           <span className="font-serif text-lg font-medium text-titulo">Admin</span>
@@ -487,7 +626,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
         </div>
         <div className="flex items-center gap-4">
           {!isSupabaseConfigured && (
-            <span className="text-xs text-dourado bg-[#FFF3E0] px-3 py-1 rounded-full hidden sm:inline">
+            <span className="text-xs text-dourado bg-[#EDE5D8] px-3 py-1 rounded-full hidden sm:inline">
               Modo demonstração
             </span>
           )}
@@ -503,7 +642,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
       <div className="max-w-6xl mx-auto px-5 md:px-8 py-8">
         {/* Tabs */}
-        <div className="flex gap-2 mb-8 border-b border-[#F5EDE4]">
+        <div className="flex gap-2 mb-8 border-b border-[#D9CBB8]">
           {([['dashboard', 'Dashboard'], ['produtos', 'Produtos'], ['pedidos', 'Pedidos']] as [Tab, string][]).map(([t, label]) => (
             <button
               key={t}
@@ -511,7 +650,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               className={`px-5 py-3 text-sm font-medium border-b-2 transition-all duration-200 -mb-[2px] ${
                 tab === t
                   ? 'text-rosa border-rosa'
-                  : 'text-subtexto border-transparent hover:text-titulo hover:border-[#EDE0DD]'
+                  : 'text-subtexto border-transparent hover:text-titulo hover:border-[#D4C4B0]'
               }`}
             >
               {label}
@@ -534,19 +673,46 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
               >
                 <h1 className="font-serif text-2xl font-medium text-titulo mb-6">Visão geral</h1>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                  <StatCard icon={Package} label="Total de produtos" value={products.filter((p) => p.ativo).length} color="bg-rosa-claro text-rosa" />
-                  <StatCard icon={ShoppingBag} label="Pedidos hoje" value={ordersToday.length} color="bg-bege text-dourado" />
-                  <StatCard icon={TrendingUp} label="Pedidos no mês" value={ordersMonth.length} color="bg-[#E8F5EE] text-[#3D8B5E]" />
+                  <StatCard icon={ShoppingBag} label="Pedidos Hoje" value={ordersToday.length} color="bg-rosa-claro text-rosa" />
                   <StatCard
                     icon={TrendingUp}
-                    label="Faturamento"
-                    value={`R$ ${totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                    label="Faturamento Hoje"
+                    value={`R$ ${revenueToday.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                    color="bg-bege text-dourado"
+                  />
+                  <StatCard icon={Package} label={`Pedidos de ${currentMonthName}`} value={ordersMonth.length} color="bg-[#E8F5EE] text-[#3D8B5E]" />
+                  <StatCard
+                    icon={TrendingUp}
+                    label={`Faturamento de ${currentMonthName}`}
+                    value={`R$ ${revenueMonth.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                     color="bg-[#E8EFF5] text-[#3D6B8B]"
                   />
                 </div>
 
+                {/* Orders by day */}
+                <div className="bg-[#FAF7F2] rounded-2xl shadow-soft p-6 mb-6">
+                  <h2 className="font-serif text-lg font-medium text-titulo mb-5">Pedidos por dia</h2>
+                  {sortedDays.length === 0 ? (
+                    <p className="text-subtexto text-sm text-center py-4">Nenhum pedido ainda.</p>
+                  ) : (
+                    <div className="divide-y divide-[#D9CBB8]">
+                      {sortedDays.map(([key, { dateStr, count, total }]) => (
+                        <div key={key} className="flex items-center justify-between py-3">
+                          <span className="text-sm font-medium text-titulo">{formatDayLabel(dateStr)}</span>
+                          <div className="flex items-center gap-4">
+                            <span className="text-sm text-subtexto">{count} {count === 1 ? 'pedido' : 'pedidos'}</span>
+                            <span className="font-serif text-sm font-medium text-dourado">
+                              R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 {/* Recent orders preview */}
-                <div className="bg-white rounded-2xl shadow-soft p-6">
+                <div className="bg-[#FAF7F2] rounded-2xl shadow-soft p-6">
                   <div className="flex items-center justify-between mb-5">
                     <h2 className="font-serif text-lg font-medium text-titulo">Pedidos recentes</h2>
                     <button onClick={() => setTab('pedidos')} className="text-rosa text-sm hover:underline">
@@ -555,7 +721,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   </div>
                   <div className="space-y-3">
                     {orders.slice(0, 5).map((order) => (
-                      <div key={order.id} className="flex items-center justify-between py-3 border-b border-[#F5EDE4] last:border-0">
+                      <div key={order.id} className="flex items-center justify-between py-3 border-b border-[#D9CBB8] last:border-0">
                         <div>
                           <p className="text-sm font-medium text-titulo">{order.cliente_nome}</p>
                           <p className="text-xs text-subtexto">{new Date(order.created_at).toLocaleDateString('pt-BR')}</p>
@@ -605,10 +771,10 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                   />
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-soft overflow-hidden">
+                <div className="bg-[#FAF7F2] rounded-2xl shadow-soft overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="bg-offwhite border-b border-[#F5EDE4]">
+                      <thead className="bg-offwhite border-b border-[#D9CBB8]">
                         <tr>
                           {['Produto', 'Aroma', 'Preço', 'Estoque', 'Status', 'Ações'].map((h) => (
                             <th key={h} className="text-left text-xs font-medium text-subtexto uppercase tracking-wider px-5 py-3.5">
@@ -617,7 +783,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                           ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#F5EDE4]">
+                      <tbody className="divide-y divide-[#D9CBB8]">
                         {filteredProducts.map((product) => (
                           <tr key={product.id} className="hover:bg-offwhite/60 transition-colors">
                             <td className="px-5 py-4">
@@ -703,8 +869,8 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                         onClick={() => setOrderFilter(s)}
                         className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                           orderFilter === s
-                            ? 'bg-rosa text-white shadow-rose'
-                            : 'bg-white text-subtexto hover:bg-rosa-claro'
+                            ? 'bg-rosa text-[#FAF7F2] shadow-rose'
+                            : 'bg-[#FAF7F2] text-subtexto hover:bg-rosa-claro'
                         }`}
                       >
                         {s === 'todos' ? 'Todos' : statusConfig[s].label}
@@ -715,7 +881,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
                 <div className="space-y-4">
                   {filteredOrders.map((order) => (
-                    <div key={order.id} className="bg-white rounded-2xl shadow-soft p-5">
+                    <div key={order.id} className="bg-[#FAF7F2] rounded-2xl shadow-soft p-5 cursor-pointer" onClick={() => setSelectedOrder(order)}>
                       <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
@@ -742,7 +908,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                       </div>
 
                       {/* Items */}
-                      <div className="mt-4 pt-4 border-t border-[#F5EDE4] flex gap-2 flex-wrap">
+                      <div className="mt-4 pt-4 border-t border-[#D9CBB8] flex gap-2 flex-wrap">
                         {order.itens.map((item) => (
                           <div key={item.produto_id} className="flex items-center gap-2 bg-offwhite rounded-xl px-3 py-2">
                             <div className="w-8 h-8 rounded-lg overflow-hidden bg-rosa-claro">
@@ -763,7 +929,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                           <select
                             value={order.status}
                             onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value as OrderStatus)}
-                            className="appearance-none bg-offwhite border border-[#EDE0DD] text-sm text-titulo rounded-lg pl-3 pr-7 py-1.5 cursor-pointer hover:border-rosa focus:outline-none focus:ring-1 focus:ring-rosa"
+                            className="appearance-none bg-offwhite border border-[#D4C4B0] text-sm text-titulo rounded-lg pl-3 pr-7 py-1.5 cursor-pointer hover:border-rosa focus:outline-none focus:ring-1 focus:ring-rosa"
                           >
                             {(['aguardando', 'pago', 'enviado', 'entregue'] as OrderStatus[]).map((s) => (
                               <option key={s} value={s}>{statusConfig[s].label}</option>
@@ -794,6 +960,18 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             initial={editingProduct ?? undefined}
             onSave={handleSaveProduct}
             onClose={() => { setNewProduct(false); setEditingProduct(null) }}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {selectedOrder && (
+          <OrderDetailModal
+            order={selectedOrder}
+            onClose={() => setSelectedOrder(null)}
+            onStatusChange={async (id, status) => {
+              await handleUpdateOrderStatus(id, status)
+              setSelectedOrder((prev) => (prev ? { ...prev, status } : null))
+            }}
           />
         )}
       </AnimatePresence>

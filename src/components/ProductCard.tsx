@@ -10,10 +10,10 @@ interface ProductCardProps {
 }
 
 const categoryColors: Record<string, string> = {
-  Relaxamento: 'bg-[#F0E8F5] text-[#7B5EA7]',
-  Energia: 'bg-[#E8F5EE] text-[#3D8B5E]',
-  Presente: 'bg-rosa-claro text-[#C06080]',
-  'Edição Limitada': 'bg-[#FFF3E0] text-[#C9A96E]',
+  Relaxamento: 'bg-[#EDE5D8] text-[#6B5A4E]',
+  Energia: 'bg-[#E4EDE6] text-[#3D7A5A]',
+  Presente: 'bg-rosa-claro text-[#8C6840]',
+  'Edição Limitada': 'bg-[#E8DDD0] text-[#9E7A52]',
 }
 
 export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
@@ -33,7 +33,7 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay, ease: [0.25, 0.1, 0.25, 1] }}
       whileHover={{ y: -6 }}
-      className="bg-white rounded-2xl overflow-hidden shadow-soft hover:shadow-rose-lg transition-shadow duration-300 flex flex-col"
+      className="bg-[#FAF7F2] rounded-2xl overflow-hidden shadow-soft hover:shadow-rose-lg transition-shadow duration-300 flex flex-col"
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden bg-rosa-claro">
@@ -62,13 +62,13 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
 
         {/* Low stock warning */}
         {product.estoque <= 5 && product.estoque > 0 && (
-          <span className="absolute top-3 right-3 text-[10px] font-semibold px-2.5 py-1 rounded-full bg-white/90 text-[#C9A96E] tracking-wide">
+          <span className="absolute top-3 right-3 text-[10px] font-semibold px-2.5 py-1 rounded-full bg-[#FAF7F2]/90 text-[#9E7A52] tracking-wide">
             Últimas unidades
           </span>
         )}
 
         {product.estoque === 0 && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
+          <div className="absolute inset-0 bg-[#F5EFE6]/60 backdrop-blur-[2px] flex items-center justify-center">
             <span className="text-sm font-medium text-subtexto">Esgotado</span>
           </div>
         )}
@@ -82,7 +82,7 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
           {product.descricao}
         </p>
 
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#F5EDE4]">
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-[#D9CBB8]">
           <span className="price text-xl">
             R${' '}
             {product.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -97,7 +97,7 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
                 ? 'bg-green-100 text-green-700'
                 : product.estoque === 0
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : 'bg-rosa text-white hover:bg-[#E894AA] hover:shadow-rose'
+                : 'bg-rosa text-[#FAF7F2] hover:bg-[#9E7A52] hover:shadow-rose'
             }`}
           >
             {added ? (

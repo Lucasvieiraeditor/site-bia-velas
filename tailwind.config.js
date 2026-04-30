@@ -4,23 +4,23 @@ export default {
   theme: {
     extend: {
       colors: {
-        rosa: '#F2A7BB',
-        'rosa-claro': '#FDE8EE',
-        bege: '#F5EDE4',
-        dourado: '#C9A96E',
-        offwhite: '#FAFAF8',
-        titulo: '#2C2C2C',
-        subtexto: '#8C7B75',
+        rosa: '#B8956A',
+        'rosa-claro': '#EDE5D8',
+        bege: '#E4D8C8',
+        dourado: '#9E7A52',
+        offwhite: '#F5EFE6',
+        titulo: '#2A2118',
+        subtexto: '#6B5A4E',
       },
       fontFamily: {
         serif: ['"Playfair Display"', 'Georgia', 'serif'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        rose: '0 4px 24px rgba(242, 167, 187, 0.25)',
-        'rose-lg': '0 8px 40px rgba(242, 167, 187, 0.4)',
-        soft: '0 2px 16px rgba(44, 44, 44, 0.08)',
-        'soft-lg': '0 8px 32px rgba(44, 44, 44, 0.12)',
+        rose: '0 4px 24px rgba(184, 149, 106, 0.22)',
+        'rose-lg': '0 8px 40px rgba(184, 149, 106, 0.36)',
+        soft: '0 2px 16px rgba(42, 33, 24, 0.08)',
+        'soft-lg': '0 8px 32px rgba(42, 33, 24, 0.13)',
       },
       animation: {
         'fade-up': 'fadeUp 0.6s ease forwards',

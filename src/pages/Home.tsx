@@ -93,7 +93,7 @@ function Hero() {
           >
             <div className="flex -space-x-2">
               {['bg-rosa', 'bg-bege', 'bg-dourado/50'].map((color, i) => (
-                <div key={i} className={`w-8 h-8 rounded-full ${color} border-2 border-white`} />
+                <div key={i} className={`w-8 h-8 rounded-full ${color} border-2 border-[#FAF7F2]`} />
               ))}
             </div>
             <p className="text-sm text-subtexto">
@@ -160,9 +160,9 @@ function ValueProps() {
           {items.map(({ icon: Icon, title, desc }, i) => (
             <ScrollReveal key={title} delay={i * 0.12} direction="up">
               <motion.div
-                whileHover={{ y: -6, boxShadow: '0 8px 40px rgba(242, 167, 187, 0.3)' }}
+                whileHover={{ y: -6, boxShadow: '0 8px 40px rgba(184, 149, 106, 0.28)' }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                className="bg-white rounded-2xl p-8 text-center shadow-soft cursor-default"
+                className="bg-[#FAF7F2] rounded-2xl p-8 text-center shadow-soft cursor-default"
               >
                 <div className="w-14 h-14 rounded-full bg-rosa-claro flex items-center justify-center mx-auto mb-5">
                   <Icon size={22} className="text-rosa" />
@@ -182,7 +182,7 @@ function ValueProps() {
 
 function FeaturedProducts() {
   return (
-    <section className="bg-white py-20 px-5 md:px-8">
+    <section className="bg-offwhite py-20 px-5 md:px-8">
       <div className="max-w-6xl mx-auto">
         <ScrollReveal className="text-center mb-12">
           <p className="text-xs font-medium text-dourado tracking-[0.15em] uppercase mb-3">
@@ -233,7 +233,7 @@ function About() {
               <motion.div
                 animate={{ y: [0, -8, 0] }}
                 transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
-                className="absolute -bottom-5 -right-5 bg-white rounded-2xl p-5 shadow-soft-lg max-w-[180px]"
+                className="absolute -bottom-5 -right-5 bg-[#FAF7F2] rounded-2xl p-5 shadow-soft-lg max-w-[180px]"
               >
                 <p className="font-serif text-2xl font-medium text-rosa">100%</p>
                 <p className="text-xs text-subtexto mt-1 leading-snug">Cera vegetal natural & ingredientes selecionados</p>
@@ -327,7 +327,7 @@ function Testimonials() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {reviews.map(({ name, location, stars, text, product }, i) => (
             <ScrollReveal key={name} delay={i * 0.1} direction="up">
-              <div className="bg-white rounded-2xl p-7 shadow-soft h-full flex flex-col">
+              <div className="bg-[#FAF7F2] rounded-2xl p-7 shadow-soft h-full flex flex-col">
                 {/* Stars */}
                 <div className="flex gap-1 mb-4">
                   {[...Array(stars)].map((_, j) => (
@@ -335,7 +335,7 @@ function Testimonials() {
                   ))}
                 </div>
                 <p className="text-subtexto text-sm leading-relaxed flex-1">"{text}"</p>
-                <div className="mt-5 pt-4 border-t border-[#F5EDE4]">
+                <div className="mt-5 pt-4 border-t border-[#D9CBB8]">
                   <p className="font-medium text-titulo text-sm">{name}</p>
                   <p className="text-subtexto text-xs mt-0.5">{location}</p>
                   <p className="text-rosa text-xs mt-1 font-medium">{product}</p>
@@ -355,17 +355,17 @@ function FinalCTA() {
   return (
     <section className="bg-rosa py-24 px-5 md:px-8 text-center relative overflow-hidden">
       {/* Decorative blobs */}
-      <div aria-hidden className="absolute top-0 left-0 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
-      <div aria-hidden className="absolute bottom-0 right-0 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none translate-x-1/3 translate-y-1/3" />
+      <div aria-hidden className="absolute top-0 left-0 w-72 h-72 rounded-full bg-[#FAF7F2]/10 blur-3xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
+      <div aria-hidden className="absolute bottom-0 right-0 w-72 h-72 rounded-full bg-[#FAF7F2]/10 blur-3xl pointer-events-none translate-x-1/3 translate-y-1/3" />
 
       <ScrollReveal direction="up" className="relative">
-        <p className="text-white/80 text-sm font-medium tracking-[0.15em] uppercase mb-5">
+        <p className="text-[#FAF7F2]/80 text-sm font-medium tracking-[0.15em] uppercase mb-5">
           Para você ou para quem você ama
         </p>
-        <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-white leading-snug text-balance max-w-3xl mx-auto">
+        <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-medium text-[#FAF7F2] leading-snug text-balance max-w-3xl mx-auto">
           O presente perfeito para quem você ama — inclusive você.
         </h2>
-        <p className="text-white/80 text-lg mt-5 max-w-lg mx-auto font-light">
+        <p className="text-[#FAF7F2]/80 text-lg mt-5 max-w-lg mx-auto font-light">
           Cada criação vem embalada com delicadeza, pronta para ser entregue com amor.
         </p>
         <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
@@ -374,7 +374,7 @@ function FinalCTA() {
           </Link>
           <Link
             to="/produtos?categoria=Presente"
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full border border-white/60 text-white text-base font-medium hover:bg-white/10 transition-all duration-300"
+            className="inline-flex items-center gap-2 px-8 py-4 rounded-full border border-[#FAF7F2]/60 text-[#FAF7F2] text-base font-medium hover:bg-[#FAF7F2]/10 transition-all duration-300"
           >
             <Gift size={16} />
             Ver presentes

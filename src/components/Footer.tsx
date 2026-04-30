@@ -5,7 +5,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="bg-white border-t border-[#F5EDE4]">
+    <footer className="bg-[#FAF7F2] border-t border-[#D9CBB8]">
       <div className="max-w-6xl mx-auto px-5 md:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {/* Brand */}
@@ -24,7 +24,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-rosa-claro text-rosa hover:bg-rosa hover:text-white transition-colors duration-200"
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-rosa-claro text-rosa hover:bg-rosa hover:text-[#FAF7F2] transition-colors duration-200"
               >
                 <Instagram size={15} />
               </a>
@@ -34,7 +34,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-rosa-claro text-rosa hover:bg-rosa hover:text-white transition-colors duration-200"
+                className="w-9 h-9 flex items-center justify-center rounded-full bg-rosa-claro text-rosa hover:bg-rosa hover:text-[#FAF7F2] transition-colors duration-200"
               >
                 <MessageCircle size={15} />
               </a>
@@ -94,7 +94,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-[#F5EDE4] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-subtexto">
+        <div className="mt-10 pt-6 border-t border-[#D9CBB8] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-subtexto">
           <p>© {currentYear} Bia Velas Aromáticas. Todos os direitos reservados.</p>
           <p className="flex items-center gap-1">
             Feito com <Heart size={11} className="text-rosa fill-rosa" /> no Brasil

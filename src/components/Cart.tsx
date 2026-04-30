@@ -41,17 +41,17 @@ export default function Cart() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-            className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm bg-white shadow-soft-lg flex flex-col"
+            className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm bg-[#FAF7F2] shadow-soft-lg flex flex-col"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-[#F5EDE4]">
+            <div className="flex items-center justify-between px-6 py-5 border-b border-[#D9CBB8]">
               <div className="flex items-center gap-2">
                 <ShoppingBag size={18} className="text-rosa" />
                 <h2 className="font-serif text-lg font-medium text-titulo">
                   Minha Sacola
                 </h2>
                 {items.length > 0 && (
-                  <span className="ml-1 w-5 h-5 flex items-center justify-center rounded-full bg-rosa text-white text-[10px] font-semibold">
+                  <span className="ml-1 w-5 h-5 flex items-center justify-center rounded-full bg-rosa text-[#FAF7F2] text-[10px] font-semibold">
                     {items.reduce((a, i) => a + i.quantidade, 0)}
                   </span>
                 )}
@@ -118,7 +118,7 @@ export default function Cart() {
                       <div className="flex items-center gap-2 mt-2">
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantidade - 1)}
-                          className="w-6 h-6 rounded-full border border-[#EDE0DD] flex items-center justify-center hover:border-rosa hover:text-rosa transition-colors duration-200"
+                          className="w-6 h-6 rounded-full border border-[#D4C4B0] flex items-center justify-center hover:border-rosa hover:text-rosa transition-colors duration-200"
                         >
                           <Minus size={11} />
                         </button>
@@ -127,7 +127,7 @@ export default function Cart() {
                         </span>
                         <button
                           onClick={() => updateQuantity(item.product.id, item.quantidade + 1)}
-                          className="w-6 h-6 rounded-full border border-[#EDE0DD] flex items-center justify-center hover:border-rosa hover:text-rosa transition-colors duration-200"
+                          className="w-6 h-6 rounded-full border border-[#D4C4B0] flex items-center justify-center hover:border-rosa hover:text-rosa transition-colors duration-200"
                         >
                           <Plus size={11} />
                         </button>
@@ -147,7 +147,7 @@ export default function Cart() {
 
             {/* Footer */}
             {items.length > 0 && (
-              <div className="px-6 py-5 border-t border-[#F5EDE4] bg-offwhite space-y-4">
+              <div className="px-6 py-5 border-t border-[#D9CBB8] bg-offwhite space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-subtexto text-sm">Subtotal</span>
                   <span className="font-serif text-lg font-medium text-titulo">
