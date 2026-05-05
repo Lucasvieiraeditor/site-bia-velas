@@ -221,12 +221,12 @@ function About() {
           {/* Image */}
           <ScrollReveal direction="left">
             <div className="relative">
-              <div className="rounded-3xl overflow-hidden aspect-[4/5] shadow-soft-lg">
+              <div className="rounded-3xl overflow-hidden aspect-[4/5] shadow-soft-lg flex items-center justify-center">
                 <img
-                  src="https://images.unsplash.com/photo-1571172964533-8c22c7e62e5a?auto=format&fit=crop&w=800&q=80"
-                  alt="Criação artesanal das velas Bia"
+                  src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
+                  alt="ByBiaggi"
                   loading="lazy"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               </div>
               {/* Decorative card */}
@@ -246,7 +246,7 @@ function About() {
             <div className="space-y-6">
               <div>
                 <p className="text-xs font-medium text-dourado tracking-[0.15em] uppercase mb-3">
-                  Nossa história
+                  história da ByBiaggi
                 </p>
                 <h2 className="section-title leading-snug">
                   Feito com{' '}
@@ -256,20 +256,26 @@ function About() {
 
               <div className="space-y-4 text-subtexto leading-relaxed">
                 <p>
-                  Bia Velas Aromáticas nasceu de um desejo simples e profundo: transformar qualquer
-                  ambiente em um lugar de bem-estar e autocuidado. Cada criação começa com cera
-                  vegetal de coco e soja, essências naturais importadas e muito amor derramado em
-                  cada passo do processo.
+                  A ByBiaggi nasceu em um momento de dor… Mas foi justamente ali que tudo começou a ganhar um novo sentido.
                 </p>
                 <p>
-                  Acreditamos que um aroma tem o poder de mudar como nos sentimos — de trazer
-                  calma em dias agitados, energia nas manhãs difíceis, e aconchego nas noites frias.
-                  É essa magia que buscamos engarrafar em cada vela.
+                  Em meio a um período desafiador, uma das sócias encontrou no artesanato uma forma de terapia, de reconexão e de ressignificar sentimentos. Entre aromas, texturas e silêncio, surgiu algo maior do que se imaginava: um propósito.
+                </p>
+                <p>
+                  O que começou como um refúgio, aos poucos se transformou em visão. Nascia ali a ideia de uma marca que não venderia apenas produtos, mas experiências — um universo onde cada detalhe fosse pensado para despertar sensações, acolher e transformar momentos simples em algo especial.
+                </p>
+                <p>
+                  Com esse sonho, convidou mais três mulheres para caminharem juntas nessa jornada. E assim, unidas, deram início à construção dessa história.
+                </p>
+                <p>
+                  A ByBiaggi nasce da sensibilidade, da força feminina e da coragem de recomeçar. Cada vela, cada fragrância e cada criação carrega esse propósito: tocar, envolver e criar memórias através dos sentidos.
                 </p>
                 <p className="font-medium text-titulo italic font-serif text-lg">
-                  "Cada vela é criada como se fosse para mim — com o cuidado que cada momento merece."
+                  "Hoje, mais do que uma marca, somos uma experiência. Uma pausa. Um cuidado. Um sentir."
                 </p>
-                <p className="text-xs text-dourado font-medium tracking-wider">— Bia, fundadora</p>
+                <p className="text-xs text-dourado font-medium tracking-wider">
+                  ByBiaggi não é apenas uma vela. É uma experiência sensorial!
+                </p>
               </div>
 
               <Link

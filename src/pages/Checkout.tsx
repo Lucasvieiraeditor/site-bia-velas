@@ -1,21 +1,12 @@
 import { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ShieldCheck, CreditCard, Loader2, Minus, Plus, Trash2 } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { createOrder, isSupabaseConfigured } from '../lib/supabase'
 import type { Order } from '../types'
 
-// ─── MercadoPago Integration ────────────────────────────────────────────────
-// Para integrar com o MercadoPago, você precisa de um backend que crie a preferência.
-// Opções:
-//   1. Supabase Edge Function (recomendado): crie uma função em /supabase/functions/create-preference
-//   2. API Route do seu backend preferido
-//
-// Configure a variável de ambiente VITE_CHECKOUT_API_URL com o endpoint.
-// A função deve receber { items, payer, back_urls } e retornar { init_point }.
-// ──────────────────────────────────────────────────────────────────────────────
-const CHECKOUT_API_URL = import.meta.env.VITE_CHECKOUT_API_URL ?? ''
+const MP_ACCESS_TOKEN = 'APP_USR-2258868822720925-050116-cc5053beb86ff19f470e519b05e13c47-203809776'
 
 interface FormData {
   nome: string
@@ -58,7 +49,6 @@ function formatCEP(v: string) {
 
 export default function Checkout() {
   const { items, totalPrice, clearCart, updateQuantity, removeItem } = useCart()
-  const navigate = useNavigate()
   const [form, setForm] = useState<FormData>(emptyForm)
   const [errors, setErrors] = useState<Partial<FormData>>({})
   const [loading, setLoading] = useState(false)
@@ -66,7 +56,7 @@ export default function Checkout() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-offwhite pt-16 px-5 text-center gap-5">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-offwhite pt-16 md:pt-20 px-5 text-center gap-5">
         <span className="text-6xl">🛒</span>
         <h2 className="font-serif text-2xl text-titulo">Sua sacola está vazia</h2>
         <p className="text-subtexto text-sm">Escolha suas criações preferidas antes de continuar.</p>
@@ -162,43 +152,39 @@ export default function Checkout() {
       }
 
       // ─── MercadoPago: cria preferência de pagamento ──────────────────
-      // Configure VITE_CHECKOUT_API_URL com seu endpoint de backend.
-      // Se não estiver configurado, redireciona para a tela de confirmação diretamente.
-      if (CHECKOUT_API_URL) {
-        const mpRes = await fetch(CHECKOUT_API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            external_reference: orderId,
-            items: orderItems.map((i) => ({
-              title: i.nome,
-              description: i.aroma,
-              unit_price: i.preco,
-              quantity: i.quantidade,
-              currency_id: 'BRL',
-            })),
-            payer: {
-              name: form.nome.split(' ')[0],
-              surname: form.nome.split(' ').slice(1).join(' ') || '',
-              email: form.email,
-              phone: { number: form.telefone.replace(/\D/g, '') },
-            },
-            back_urls: {
-              success: `${window.location.origin}/confirmacao?pedido=${orderId}`,
-              failure: `${window.location.origin}/checkout`,
-              pending: `${window.location.origin}/confirmacao?pedido=${orderId}`,
-            },
-            auto_return: 'approved',
-          }),
-        })
-        const { init_point } = await mpRes.json()
-        clearCart()
-        window.location.href = init_point
-      } else {
-        // Demo mode — vai direto para confirmação
-        clearCart()
-        navigate(`/confirmacao?pedido=${orderId}&demo=true`)
-      }
+      const mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${MP_ACCESS_TOKEN}`,
+        },
+        body: JSON.stringify({
+          external_reference: orderId,
+          items: orderItems.map((i) => ({
+            title: i.nome,
+            description: i.aroma || '',
+            unit_price: i.preco,
+            quantity: i.quantidade,
+            currency_id: 'BRL',
+          })),
+          payer: {
+            name: form.nome.split(' ')[0],
+            surname: form.nome.split(' ').slice(1).join(' ') || '',
+            email: form.email,
+            phone: { number: form.telefone.replace(/\D/g, '') },
+          },
+          back_urls: {
+            success: `https://bybiaggi.com.br/confirmacao?pedido=${orderId}`,
+            failure: 'https://bybiaggi.com.br/carrinho',
+            pending: `https://bybiaggi.com.br/confirmacao?pedido=${orderId}`,
+          },
+          auto_return: 'approved',
+        }),
+      })
+      const mpData = await mpRes.json()
+      if (!mpRes.ok) throw new Error(mpData.message ?? 'Erro ao criar preferência de pagamento.')
+      clearCart()
+      window.location.href = mpData.init_point
     } catch (err) {
       console.error('Erro ao processar pedido:', err)
       alert('Não foi possível processar seu pedido. Tente novamente.')
@@ -211,7 +197,7 @@ export default function Checkout() {
   const finalTotal = totalPrice >= 150 ? totalPrice : totalPrice + 18.9
 
   return (
-    <main className="min-h-screen bg-offwhite pt-20 pb-16 px-5 md:px-8">
+    <main className="min-h-screen bg-offwhite pt-20 md:pt-24 pb-16 px-5 md:px-8">
       <div className="max-w-5xl mx-auto">
         {/* Back */}
         <motion.div

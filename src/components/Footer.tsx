@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Flame, Instagram, MessageCircle, Heart } from 'lucide-react'
+import { Instagram, MessageCircle, Heart } from 'lucide-react'
 
 export default function Footer() {
   const currentYear = new Date().getFullYear()
@@ -10,9 +10,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {/* Brand */}
           <div className="flex flex-col gap-4">
-            <Link to="/" className="flex items-center gap-2">
-              <Flame size={18} className="text-rosa" />
-              <span className="font-serif text-lg font-medium text-titulo">Bia Velas Aromáticas</span>
+            <Link to="/">
+              <img
+                src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
+                alt="By Biaggi"
+                className="w-[180px] md:w-[240px] h-auto"
+                style={{ objectFit: 'contain', display: 'block' }}
+              />
             </Link>
             <p className="text-subtexto text-sm leading-relaxed max-w-[220px]">
               Criações artesanais feitas com cera vegetal, essências naturais e muito amor.
@@ -30,7 +34,7 @@ export default function Footer() {
               </a>
               {/* ─── Substitua pelo seu número do WhatsApp ─── */}
               <a
-                href="https://wa.me/5511999999999"
+                href="https://wa.me/5511992930655"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
@@ -79,16 +83,16 @@ export default function Footer() {
               <li>
                 {/* ─── Substitua pelo seu WhatsApp ─── */}
                 <a
-                  href="https://wa.me/5511999999999"
+                  href="https://wa.me/5511992930655"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-rosa transition-colors duration-200"
                 >
-                  (11) 99999-9999
+                  (11) 99293-0655
                 </a>
               </li>
               <li className="leading-relaxed">
-                Atendimento seg–sex<br />das 9h às 18h
+                Não temos horários fixos. Por ser online estamos sempre prontas para atender!
               </li>
             </ul>
           </div>

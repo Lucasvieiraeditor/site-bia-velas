@@ -1,13 +1,14 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  LogOut, Package, ShoppingBag, TrendingUp, Plus, Edit2, Trash2,
+  ArrowLeft, Package, ShoppingBag, TrendingUp, Plus, Edit2, Trash2,
   Eye, EyeOff, X, Check, Loader2, Search, ChevronDown, UploadCloud,
-  AlertCircle, Flame
+  AlertCircle
 } from 'lucide-react'
 import {
   supabase, signIn, signOut, getSession,
-  fetchProducts, fetchOrders,
+  fetchAllProducts, fetchOrders,
   createProduct, updateProduct, deleteProduct, updateOrderStatus,
   uploadProductImage, isSupabaseConfigured,
 } from '../lib/supabase'
@@ -54,11 +55,15 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8">
-          <div className="w-14 h-14 rounded-full bg-rosa-claro flex items-center justify-center mx-auto mb-4">
-            <Flame size={24} className="text-rosa" />
+          <div className="flex justify-center mb-4">
+            <img
+              src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
+              alt="By Biaggi"
+              className="w-[180px] md:w-[220px] h-auto"
+              style={{ objectFit: 'contain', display: 'block' }}
+            />
           </div>
           <h1 className="font-serif text-2xl font-medium text-titulo">Área Admin</h1>
-          <p className="text-subtexto text-sm mt-1">Bia Velas Aromáticas</p>
           {!isSupabaseConfigured && (
             <p className="text-xs text-dourado mt-2 bg-[#EDE5D8] rounded-lg px-3 py-2">
               Modo demonstração — configure o Supabase para usar autenticação real.
@@ -73,7 +78,7 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
               type="email"
               value={email}
               onChange={(e) => { setEmail(e.target.value); setError('') }}
-              placeholder="admin@biavelas.com.br"
+              placeholder="Biavelas@gmail.com"
               className="input-field"
               autoComplete="username"
             />
@@ -154,35 +159,65 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
     aroma: initial?.aroma ?? '',
     preco: initial?.preco?.toString() ?? '',
     categoria: initial?.categoria ?? ('Relaxamento' as ProductCategory),
-    imagem_url: initial?.imagem_url ?? '',
     estoque: initial?.estoque?.toString() ?? '10',
     ativo: initial?.ativo ?? true,
+  })
+  const [photos, setPhotos] = useState<string[]>(() => {
+    if (initial?.imagens) return initial.imagens.split(',').filter(Boolean)
+    if (initial?.imagem_url) return [initial.imagem_url]
+    return []
   })
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+  const dragIndex = useRef<number | null>(null)
 
   const set = (field: keyof typeof form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setForm((prev) => ({ ...prev, [field]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value }))
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!isSupabaseConfigured) {
-      setForm((prev) => ({ ...prev, imagem_url: URL.createObjectURL(file) }))
-      return
-    }
+  const handleImagesUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    if (!files.length) return
     setUploading(true)
+    setError('')
     try {
-      const url = await uploadProductImage(file)
-      setForm((prev) => ({ ...prev, imagem_url: url }))
+      const urls = await Promise.all(
+        files.map((file) =>
+          isSupabaseConfigured
+            ? uploadProductImage(file)
+            : Promise.resolve(URL.createObjectURL(file))
+        )
+      )
+      setPhotos((prev) => [...prev, ...urls])
     } catch {
-      setError('Erro ao fazer upload da imagem.')
+      setError('Erro ao enviar foto. Tente novamente.')
     } finally {
       setUploading(false)
+      if (fileRef.current) fileRef.current.value = ''
     }
+  }
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  const handleDragStart = (index: number) => {
+    dragIndex.current = index
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const handleDrop = (index: number) => {
+    if (dragIndex.current === null || dragIndex.current === index) return
+    const reordered = [...photos]
+    const [moved] = reordered.splice(dragIndex.current, 1)
+    reordered.splice(index, 0, moved)
+    setPhotos(reordered)
+    dragIndex.current = null
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -197,12 +232,14 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
         aroma: form.aroma,
         preco: parseFloat(form.preco),
         categoria: form.categoria,
-        imagem_url: form.imagem_url || 'https://images.unsplash.com/photo-1602523961358-f9f03dd557db?auto=format&fit=crop&w=600&q=80',
+        imagem_url: photos[0] || 'https://images.unsplash.com/photo-1602523961358-f9f03dd557db?auto=format&fit=crop&w=600&q=80',
+        ...(photos.length > 0 && { imagens: photos.join(',') }),
         estoque: parseInt(form.estoque) || 0,
         ativo: form.ativo,
       })
       onClose()
-    } catch {
+    } catch (err) {
+      console.error('[Admin] Erro ao salvar produto:', err)
       setError('Erro ao salvar produto. Tente novamente.')
     } finally {
       setLoading(false)
@@ -236,28 +273,53 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {/* Image upload */}
           <div>
-            <label className="label">Imagem do produto</label>
+            <label className="label">Fotos do produto</label>
             <div
               onClick={() => fileRef.current?.click()}
-              className="relative border-2 border-dashed border-[#D4C4B0] rounded-xl overflow-hidden cursor-pointer hover:border-rosa transition-colors aspect-video bg-rosa-claro/30"
+              className="flex items-center justify-center gap-2 border-2 border-dashed border-[#D4C4B0] rounded-xl py-4 px-5 cursor-pointer hover:border-rosa transition-colors bg-rosa-claro/20"
             >
-              {form.imagem_url ? (
-                <img src={form.imagem_url} alt="" className="w-full h-full object-cover" />
+              {uploading ? (
+                <>
+                  <Loader2 size={18} className="animate-spin text-rosa" />
+                  <span className="text-sm text-subtexto">Enviando...</span>
+                </>
               ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-subtexto">
-                  {uploading ? <Loader2 size={24} className="animate-spin text-rosa" /> : <UploadCloud size={24} />}
-                  <span className="text-sm">{uploading ? 'Enviando…' : 'Clique para enviar foto'}</span>
-                </div>
+                <>
+                  <UploadCloud size={18} className="text-subtexto" />
+                  <span className="text-sm text-subtexto">Clique para enviar fotos</span>
+                </>
               )}
             </div>
-            <input ref={fileRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-            <input
-              type="url"
-              value={form.imagem_url}
-              onChange={set('imagem_url')}
-              placeholder="Ou cole uma URL de imagem"
-              className="input-field mt-2 text-sm"
-            />
+            <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleImagesUpload} className="hidden" />
+
+            {photos.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {photos.map((url, index) => (
+                  <div
+                    key={`${url}-${index}`}
+                    draggable
+                    onDragStart={() => handleDragStart(index)}
+                    onDragOver={handleDragOver}
+                    onDrop={() => handleDrop(index)}
+                    className="relative w-20 h-20 rounded-xl overflow-hidden border-2 border-[#D4C4B0] cursor-grab active:cursor-grabbing select-none"
+                  >
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                    {index === 0 && (
+                      <span className="absolute bottom-0 left-0 right-0 text-[9px] font-semibold text-center bg-rosa text-white py-0.5">
+                        Capa
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removePhoto(index)}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-titulo/70 text-white flex items-center justify-center hover:bg-titulo transition-colors"
+                    >
+                      <X size={10} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
@@ -451,7 +513,7 @@ function OrderDetailModal({
 
 type Tab = 'dashboard' | 'produtos' | 'pedidos'
 
-function AdminDashboard({ onLogout }: { onLogout: () => void }) {
+function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
   const [tab, setTab] = useState<Tab>('dashboard')
   const [products, setProducts] = useState<Product[]>([])
   const [orders, setOrders] = useState<Order[]>([])
@@ -467,7 +529,7 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
     setLoadingData(true)
     try {
       if (isSupabaseConfigured) {
-        const [prods, ords] = await Promise.all([fetchProducts(), fetchOrders()])
+        const [prods, ords] = await Promise.all([fetchAllProducts(), fetchOrders()])
         setProducts(prods)
         setOrders(ords)
       } else {
@@ -517,6 +579,15 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  // Greeting
+  const greeting = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Bom dia'
+    if (h < 18) return 'Boa tarde'
+    return 'Boa noite'
+  })()
+  const formattedDate = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 
   // Dashboard stats
   const now = new Date()
@@ -617,28 +688,35 @@ function AdminDashboard({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div className="min-h-screen bg-offwhite">
-      {/* Top bar */}
-      <header className="bg-[#FAF7F2] border-b border-[#D9CBB8] px-5 md:px-8 h-16 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-2">
-          <Flame size={18} className="text-rosa" />
-          <span className="font-serif text-lg font-medium text-titulo">Admin</span>
-          <span className="text-subtexto text-sm hidden sm:inline">— Bia Velas</span>
-        </div>
-        <div className="flex items-center gap-4">
-          {!isSupabaseConfigured && (
-            <span className="text-xs text-dourado bg-[#EDE5D8] px-3 py-1 rounded-full hidden sm:inline">
-              Modo demonstração
-            </span>
-          )}
-          <button
-            onClick={onLogout}
-            className="flex items-center gap-2 text-sm text-subtexto hover:text-titulo transition-colors"
+      {/* Admin Header */}
+      <div className="bg-[#FAF7F2] border-b border-[#D9CBB8]">
+        <div className="max-w-6xl mx-auto px-5 md:px-8 h-16 md:h-20 grid grid-cols-3 items-center">
+          <Link
+            to="/"
+            className="flex items-center gap-2 text-subtexto hover:text-titulo transition-colors duration-200 group w-fit"
+            aria-label="Voltar ao site"
           >
-            <LogOut size={16} />
-            <span className="hidden sm:inline">Sair</span>
-          </button>
+            <div className="w-8 h-8 rounded-full group-hover:bg-rosa-claro flex items-center justify-center transition-colors duration-200">
+              <ArrowLeft size={16} />
+            </div>
+            <span className="text-sm hidden sm:block">Voltar ao site</span>
+          </Link>
+
+          <div className="flex justify-center">
+            <img
+              src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
+              alt="By Biaggi"
+              className="h-10 md:h-14 w-auto"
+              style={{ objectFit: 'contain', display: 'block' }}
+            />
+          </div>
+
+          <div className="text-right">
+            <p className="font-serif text-sm font-medium text-titulo">{greeting}, Bia</p>
+            <p className="text-[11px] text-subtexto capitalize mt-0.5">{formattedDate}</p>
+          </div>
         </div>
-      </header>
+      </div>
 
       <div className="max-w-6xl mx-auto px-5 md:px-8 py-8">
         {/* Tabs */}

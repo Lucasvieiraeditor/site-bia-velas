@@ -1,25 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Product, Order } from '../types'
 
-// ─── CONFIGURE SUAS CREDENCIAIS DO SUPABASE AQUI ───────────────────────────
-// 1. Acesse https://supabase.com e crie um projeto
-// 2. Vá em Settings > API e copie a Project URL e a anon key
-// 3. Substitua os valores abaixo pelas suas credenciais reais
-// ───────────────────────────────────────────────────────────────────────────
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? 'https://SEU_PROJETO.supabase.co'
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ?? 'SUA_ANON_KEY_AQUI'
+const SUPABASE_URL = 'https://vnmqdyzjbtouanivsadf.supabase.co'
+const SUPABASE_ANON_KEY = 'sb_publishable_mzYk0z87Jsv4TW7gz1i6rA_1wYByL0h'
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-export const isSupabaseConfigured =
-  SUPABASE_URL !== 'https://SEU_PROJETO.supabase.co' &&
-  SUPABASE_ANON_KEY !== 'SUA_ANON_KEY_AQUI'
+export const isSupabaseConfigured = true
 
 // ── Produtos ────────────────────────────────────────────────────────────────
 
 export async function fetchProducts(categoria?: string): Promise<Product[]> {
   let query = supabase
-    .from('produtos')
+    .from('produtos_bia')
     .select('*')
     .eq('ativo', true)
     .order('created_at', { ascending: false })
@@ -33,9 +26,18 @@ export async function fetchProducts(categoria?: string): Promise<Product[]> {
   return (data ?? []) as Product[]
 }
 
+export async function fetchAllProducts(): Promise<Product[]> {
+  const { data, error } = await supabase
+    .from('produtos_bia')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as Product[]
+}
+
 export async function fetchProductById(id: string): Promise<Product | null> {
   const { data, error } = await supabase
-    .from('produtos')
+    .from('produtos_bia')
     .select('*')
     .eq('id', id)
     .single()
@@ -46,7 +48,7 @@ export async function fetchProductById(id: string): Promise<Product | null> {
 export async function createProduct(
   product: Omit<Product, 'id' | 'created_at'>,
 ): Promise<Product> {
-  const { data, error } = await supabase.from('produtos').insert(product).select().single()
+  const { data, error } = await supabase.from('produtos_bia').insert(product).select().single()
   if (error) throw error
   return data as Product
 }
@@ -56,7 +58,7 @@ export async function updateProduct(
   updates: Partial<Omit<Product, 'id' | 'created_at'>>,
 ): Promise<Product> {
   const { data, error } = await supabase
-    .from('produtos')
+    .from('produtos_bia')
     .update(updates)
     .eq('id', id)
     .select()
@@ -66,7 +68,7 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  const { error } = await supabase.from('produtos').delete().eq('id', id)
+  const { error } = await supabase.from('produtos_bia').delete().eq('id', id)
   if (error) throw error
 }
 
@@ -75,14 +77,14 @@ export async function deleteProduct(id: string): Promise<void> {
 export async function createOrder(
   order: Omit<Order, 'id' | 'created_at'>,
 ): Promise<Order> {
-  const { data, error } = await supabase.from('pedidos').insert(order).select().single()
+  const { data, error } = await supabase.from('pedidos_bia').insert(order).select().single()
   if (error) throw error
   return data as Order
 }
 
 export async function fetchOrders(): Promise<Order[]> {
   const { data, error } = await supabase
-    .from('pedidos')
+    .from('pedidos_bia')
     .select('*')
     .order('created_at', { ascending: false })
   if (error) throw error
@@ -93,23 +95,22 @@ export async function updateOrderStatus(
   id: string,
   status: Order['status'],
 ): Promise<void> {
-  const { error } = await supabase.from('pedidos').update({ status }).eq('id', id)
+  const { error } = await supabase.from('pedidos_bia').update({ status }).eq('id', id)
   if (error) throw error
 }
 
 // ── Upload de imagem ─────────────────────────────────────────────────────────
 
 export async function uploadProductImage(file: File): Promise<string> {
-  const ext = file.name.split('.').pop()
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+  const fileName = `${Date.now()}-${file.name}`
 
   const { error } = await supabase.storage
-    .from('produtos')
+    .from('imagens-bia')
     .upload(fileName, file, { cacheControl: '3600', upsert: false })
 
   if (error) throw error
 
-  const { data } = supabase.storage.from('produtos').getPublicUrl(fileName)
+  const { data } = supabase.storage.from('imagens-bia').getPublicUrl(fileName)
   return data.publicUrl
 }
 

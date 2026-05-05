@@ -7,6 +7,7 @@ export interface Product {
   preco: number
   categoria: 'Relaxamento' | 'Energia' | 'Presente' | 'Edição Limitada'
   imagem_url: string
+  imagens?: string
   estoque: number
   ativo: boolean
 }

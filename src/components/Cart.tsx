@@ -91,10 +91,10 @@ export default function Cart() {
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="flex gap-3"
+                    className="flex gap-3 w-full"
                   >
                     {/* Image */}
-                    <div className="w-18 h-18 min-w-[72px] rounded-xl overflow-hidden bg-rosa-claro">
+                    <div className="w-[72px] h-[72px] shrink-0 rounded-xl overflow-hidden bg-rosa-claro">
                       <img
                         src={item.product.imagem_url}
                         alt={item.product.nome}
@@ -103,11 +103,11 @@ export default function Cart() {
                     </div>
 
                     {/* Info */}
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 overflow-hidden">
                       <p className="font-serif text-sm font-medium text-titulo leading-snug line-clamp-1">
                         {item.product.nome}
                       </p>
-                      <p className="text-[11px] text-subtexto uppercase tracking-wider mt-0.5">
+                      <p className="text-[11px] text-subtexto uppercase tracking-wider mt-0.5 truncate">
                         {item.product.aroma}
                       </p>
                       <p className="price text-sm mt-1">
@@ -115,25 +115,27 @@ export default function Cart() {
                       </p>
 
                       {/* Quantity */}
-                      <div className="flex items-center gap-2 mt-2">
-                        <button
-                          onClick={() => updateQuantity(item.product.id, item.quantidade - 1)}
-                          className="w-6 h-6 rounded-full border border-[#D4C4B0] flex items-center justify-center hover:border-rosa hover:text-rosa transition-colors duration-200"
-                        >
-                          <Minus size={11} />
-                        </button>
-                        <span className="text-sm font-medium text-titulo w-4 text-center">
-                          {item.quantidade}
-                        </span>
-                        <button
-                          onClick={() => updateQuantity(item.product.id, item.quantidade + 1)}
-                          className="w-6 h-6 rounded-full border border-[#D4C4B0] flex items-center justify-center hover:border-rosa hover:text-rosa transition-colors duration-200"
-                        >
-                          <Plus size={11} />
-                        </button>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateQuantity(item.product.id, item.quantidade - 1)}
+                            className="w-6 h-6 rounded-full border border-[#D4C4B0] flex items-center justify-center hover:border-rosa hover:text-rosa transition-colors duration-200"
+                          >
+                            <Minus size={11} />
+                          </button>
+                          <span className="text-sm font-medium text-titulo w-4 text-center">
+                            {item.quantidade}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(item.product.id, item.quantidade + 1)}
+                            className="w-6 h-6 rounded-full border border-[#D4C4B0] flex items-center justify-center hover:border-rosa hover:text-rosa transition-colors duration-200"
+                          >
+                            <Plus size={11} />
+                          </button>
+                        </div>
                         <button
                           onClick={() => removeItem(item.product.id)}
-                          className="ml-auto p-1 text-subtexto hover:text-red-400 transition-colors duration-200"
+                          className="p-1 text-subtexto hover:text-red-400 transition-colors duration-200"
                           aria-label="Remover"
                         >
                           <Trash2 size={13} />

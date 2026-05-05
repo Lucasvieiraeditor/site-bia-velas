@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CheckCircle2, Heart, Package, MessageCircle, ArrowRight } from 'lucide-react'
 import Footer from '../components/Footer'
+import { updateOrderStatus, isSupabaseConfigured } from '../lib/supabase'
 
 export default function Confirmation() {
   const [searchParams] = useSearchParams()
@@ -14,11 +15,17 @@ export default function Confirmation() {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [])
 
+  useEffect(() => {
+    if (paymentStatus === 'approved' && orderId !== '—' && isSupabaseConfigured) {
+      updateOrderStatus(orderId, 'pago').catch(console.error)
+    }
+  }, [orderId, paymentStatus])
+
   const isPending = paymentStatus === 'pending'
 
   return (
     <>
-      <main className="min-h-screen bg-offwhite pt-20 pb-16 px-5 md:px-8">
+      <main className="min-h-screen bg-offwhite pt-20 md:pt-24 pb-16 px-5 md:px-8">
         <div className="max-w-2xl mx-auto text-center">
           {/* Animated icon */}
           <motion.div
@@ -115,7 +122,7 @@ export default function Confirmation() {
               <ArrowRight size={16} />
             </Link>
             <a
-              href="https://wa.me/5511999999999"
+              href="https://wa.me/5511992930655"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-secondary px-8 py-4 text-base"

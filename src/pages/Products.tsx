@@ -68,7 +68,7 @@ export default function Products() {
 
   return (
     <>
-      <main className="min-h-screen pt-16 bg-offwhite">
+      <main className="min-h-screen pt-16 md:pt-20 bg-offwhite">
         {/* Header */}
         <div className="bg-[#FAF7F2] border-b border-[#D9CBB8]">
           <div className="max-w-6xl mx-auto px-5 md:px-8 py-14 text-center">
@@ -87,7 +87,7 @@ export default function Products() {
         </div>
 
         {/* Filters */}
-        <div className="sticky top-16 z-20 bg-[#F5EFE6]/95 backdrop-blur-sm border-b border-[#D9CBB8]">
+        <div className="sticky top-16 md:top-20 z-20 bg-[#F5EFE6]/95 backdrop-blur-sm border-b border-[#D9CBB8]">
           <div className="max-w-6xl mx-auto px-5 md:px-8 py-4">
             <div className="flex items-center gap-3 overflow-x-auto scrollbar-hide pb-0.5">
               <SlidersHorizontal size={16} className="text-subtexto shrink-0" />

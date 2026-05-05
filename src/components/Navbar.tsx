@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingBag, Menu, X, Flame } from 'lucide-react'
+import { ShoppingBag, Menu, X } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 
 export default function Navbar() {
@@ -35,16 +35,15 @@ export default function Navbar() {
           scrolled ? 'bg-[#F5EFE6]/95 backdrop-blur-sm shadow-soft' : 'bg-transparent'
         }`}
       >
-        <div className="max-w-6xl mx-auto px-5 md:px-8 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-5 md:px-8 h-16 md:h-20 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <Flame
-              size={20}
-              className="text-rosa transition-transform duration-300 group-hover:scale-110"
+          <Link to="/">
+            <img
+              src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
+              alt="By Biaggi"
+              className="h-14 md:h-20 w-auto"
+              style={{ objectFit: 'contain', display: 'block' }}
             />
-            <span className="font-serif text-xl font-medium text-titulo tracking-wide">
-              Bia Velas
-            </span>
           </Link>
 
           {/* Desktop nav */}
