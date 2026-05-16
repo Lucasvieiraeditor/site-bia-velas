@@ -1,12 +1,22 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ShieldCheck, CreditCard, Loader2, Minus, Plus, Trash2 } from 'lucide-react'
+import { ArrowLeft, ShieldCheck, CreditCard, Loader2, Minus, Plus, Trash2, Truck } from 'lucide-react'
 import { useCart } from '../context/CartContext'
 import { createOrder, isSupabaseConfigured } from '../lib/supabase'
 import type { Order } from '../types'
 
 const MP_ACCESS_TOKEN = 'APP_USR-2258868822720925-050116-cc5053beb86ff19f470e519b05e13c47-203809776'
+const ME_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxIiwianRpIjoiNGQ2NmM1MGEwZGIyNWU1YzNiMjI5NDRmMjBhNzY3YTYzZjE4MGE5MzRiOWExNmVmYzhjYTk2YTY1NDVjNTUyMmRhNDFlOWY4NzM1Yzc3ZjQiLCJpYXQiOjE3Nzg4Nzg0MzMuOTYzODMsIm5iZiI6MTc3ODg3ODQzMy45NjM4MzIsImV4cCI6MTgxMDQxNDQzMy45NTIxMDUsInN1YiI6ImNiN2FmMWMzLWEyOWMtNDFhOS04MjBlLWY1MDFmYTlkMmNmOSIsInNjb3BlcyI6WyJjYXJ0LXJlYWQiLCJjYXJ0LXdyaXRlIiwiY29tcGFuaWVzLXJlYWQiLCJjb21wYW5pZXMtd3JpdGUiLCJjb3Vwb25zLXJlYWQiLCJjb3Vwb25zLXdyaXRlIiwibm90aWZpY2F0aW9ucy1yZWFkIiwib3JkZXJzLXJlYWQiLCJwcm9kdWN0cy1yZWFkIiwicHJvZHVjdHMtZGVzdHJveSIsInByb2R1Y3RzLXdyaXRlIiwicHVyY2hhc2VzLXJlYWQiLCJzaGlwcGluZy1jYWxjdWxhdGUiLCJzaGlwcGluZy1jYW5jZWwiLCJzaGlwcGluZy1jaGVja291dCIsInNoaXBwaW5nLWNvbXBhbmllcyIsInNoaXBwaW5nLWdlbmVyYXRlIiwic2hpcHBpbmctcHJldmlldyIsInNoaXBwaW5nLXByaW50Iiwic2hpcHBpbmctc2hhcmUiLCJzaGlwcGluZy10cmFja2luZyIsImVjb21tZXJjZS1zaGlwcGluZyIsInRyYW5zYWN0aW9ucy1yZWFkIiwidXNlcnMtcmVhZCIsInVzZXJzLXdyaXRlIiwid2ViaG9va3MtcmVhZCIsIndlYmhvb2tzLXdyaXRlIiwid2ViaG9va3MtZGVsZXRlIiwidGRlYWxlci13ZWJob29rIl19.X2AxXskuHUqm31vcnY2itON179pqqVHc46rGdbwRAQKCfvRN8kSuZs4Wauhu98ehx6eDZbtuzRW-ZDPqW70A0sjPzgxQ66WyBISbtS8Uh0rsK7xkfUE76NoqKez-1z7N-qWzPVWLm75nCggT8NI5i2zUfLdLy2PGlo9lFZP3ehU2ejJvCBYJVoMobs9OEd45FnornU8OglFFUq96nQ55RD8fhWFxbeEYr4d8wb2t8LRLS2KJks-LMbKtQpqgLgURAoUc4A2WdGtZY8LohTUwiuQeImc8Qm0GNjUgTyaMsKLViBEYZ3KTCgt9j4FPnOsG8ZsDedXee4Rm-6yzABb7AAAlSYSyyn9VQf1QMcoRnzcBZVuChSWHRjHOqy97cdQVlvzhIWdIdP4cDJEL0sHiQ7xaaRTvkSKJGCcd9DGncwecSqIR1gBQBAPI7-pf_YeSNK29YmeqJLx0gbJ8L49VZT5ZMV9hByOQjohGLzKaKfLRPdeyabrjrkMFwSXEbtcvdmIOBZlgKHeSK2yoHxce4h7J5xrOVEtggUZSIpu0awhngbX-NgT0Kem1dqOBqKfg1MvrHN2RnwbeW5jMvgFhqmI9dUxgdoeo5YkzW6GvvJHlm6i4fVAWjW3HAWQw96mIXIrf6IErBXVkRFNUYh-G4LGyUoXGKL9UwVq16RWLooc'
+const ME_CEP_ORIGEM = '18607289'
+
+interface ShippingOption {
+  id: number
+  name: string
+  price: number
+  delivery_time: number
+  company: { id: number; name: string }
+}
 
 interface FormData {
   nome: string
@@ -54,6 +64,16 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false)
   const [fetchingCep, setFetchingCep] = useState(false)
 
+  const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([])
+  const [selectedShipping, setSelectedShipping] = useState<ShippingOption | null>(null)
+  const [shippingError, setShippingError] = useState<string | null>(null)
+  const [calculatingShipping, setCalculatingShipping] = useState(false)
+  const [shippingValidationError, setShippingValidationError] = useState<string | null>(null)
+
+  const cepRaw = form.cep.replace(/\D/g, '')
+  const canCalculateShipping = cepRaw.length === 8
+  const finalTotal = totalPrice + (selectedShipping?.price ?? 0)
+
   if (items.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-offwhite pt-16 md:pt-20 px-5 text-center gap-5">
@@ -70,7 +90,13 @@ export default function Checkout() {
   const set = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     let value = e.target.value
     if (field === 'telefone') value = formatPhone(value)
-    if (field === 'cep') value = formatCEP(value)
+    if (field === 'cep') {
+      value = formatCEP(value)
+      setShippingOptions([])
+      setSelectedShipping(null)
+      setShippingError(null)
+      setShippingValidationError(null)
+    }
     setForm((prev) => ({ ...prev, [field]: value }))
     setErrors((prev) => ({ ...prev, [field]: '' }))
   }
@@ -98,6 +124,62 @@ export default function Checkout() {
     }
   }
 
+  const calculateShipping = async () => {
+    if (!canCalculateShipping) return
+    setCalculatingShipping(true)
+    setShippingError(null)
+    setShippingOptions([])
+    setSelectedShipping(null)
+    setShippingValidationError(null)
+
+    try {
+      const products = items.map((item) => ({
+        id: item.product.id,
+        width: 15,
+        height: 15,
+        length: 15,
+        weight: (item.product.peso ?? 100) / 1000,
+        insurance_value: 0,
+        quantity: item.quantidade,
+      }))
+
+      const res = await fetch('https://melhorenvio.com.br/api/v2/me/shipment/calculate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${ME_TOKEN}`,
+        },
+        body: JSON.stringify({
+          from: { postal_code: ME_CEP_ORIGEM },
+          to: { postal_code: cepRaw },
+          products,
+          options: { receipt: false, own_hand: false, collect: false },
+        }),
+      })
+
+      if (!res.ok) throw new Error('API error')
+
+      const data: Record<string, unknown>[] = await res.json()
+      const valid: ShippingOption[] = data
+        .filter((s) => !s.error && s.price != null && (s.company as { name: string } | undefined)?.name === 'Correios')
+        .map((s) => ({
+          id: s.id as number,
+          name: s.name as string,
+          price: parseFloat(s.price as string),
+          delivery_time: s.delivery_time as number,
+          company: s.company as { id: number; name: string },
+        }))
+
+      if (valid.length === 0) throw new Error('no options')
+      setShippingOptions(valid)
+    } catch {
+      setShippingError('Não foi possível calcular o frete. Entre em contato pelo WhatsApp.')
+    } finally {
+      setCalculatingShipping(false)
+    }
+  }
+
   const validate = (): boolean => {
     const required: Array<keyof FormData> = ['nome', 'email', 'telefone', 'cep', 'rua', 'numero', 'bairro', 'cidade', 'estado']
     const newErrors: Partial<FormData> = {}
@@ -108,7 +190,12 @@ export default function Checkout() {
       newErrors.email = 'E-mail inválido'
     }
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    if (!selectedShipping) {
+      setShippingValidationError('Calcule e selecione uma opção de frete para continuar.')
+    } else {
+      setShippingValidationError(null)
+    }
+    return Object.keys(newErrors).length === 0 && !!selectedShipping
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,11 +227,10 @@ export default function Checkout() {
           estado: form.estado,
         },
         itens: orderItems,
-        valor_total: totalPrice,
+        valor_total: finalTotal,
         status: 'aguardando',
       }
 
-      // Salva o pedido no Supabase (se configurado)
       let orderId = `local-${Date.now()}`
       if (isSupabaseConfigured) {
         const order = await createOrder(orderPayload)
@@ -152,6 +238,23 @@ export default function Checkout() {
       }
 
       // ─── MercadoPago: cria preferência de pagamento ──────────────────
+      const mpItems = [
+        ...orderItems.map((i) => ({
+          title: i.nome,
+          description: i.aroma || '',
+          unit_price: i.preco,
+          quantity: i.quantidade,
+          currency_id: 'BRL',
+        })),
+        ...(selectedShipping ? [{
+          title: `Frete — ${selectedShipping.name}`,
+          description: `Correios · até ${selectedShipping.delivery_time} dias úteis`,
+          unit_price: selectedShipping.price,
+          quantity: 1,
+          currency_id: 'BRL',
+        }] : []),
+      ]
+
       const mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
         method: 'POST',
         headers: {
@@ -160,13 +263,7 @@ export default function Checkout() {
         },
         body: JSON.stringify({
           external_reference: orderId,
-          items: orderItems.map((i) => ({
-            title: i.nome,
-            description: i.aroma || '',
-            unit_price: i.preco,
-            quantity: i.quantidade,
-            currency_id: 'BRL',
-          })),
+          items: mpItems,
           payer: {
             name: form.nome.split(' ')[0],
             surname: form.nome.split(' ').slice(1).join(' ') || '',
@@ -192,9 +289,6 @@ export default function Checkout() {
       setLoading(false)
     }
   }
-
-  const shippingEstimate = totalPrice >= 150 ? 'Grátis' : 'R$ 18,90'
-  const finalTotal = totalPrice >= 150 ? totalPrice : totalPrice + 18.9
 
   return (
     <main className="min-h-screen bg-offwhite pt-20 md:pt-24 pb-16 px-5 md:px-8">
@@ -354,6 +448,102 @@ export default function Checkout() {
                 </div>
               </div>
 
+              {/* Shipping calculation */}
+              <div className="bg-[#FAF7F2] rounded-2xl p-6 shadow-soft space-y-4">
+                <div className="flex items-center gap-2">
+                  <Truck size={17} className="text-subtexto" />
+                  <h2 className="font-serif text-xl font-medium text-titulo">Calcular frete</h2>
+                </div>
+
+                {!canCalculateShipping && (
+                  <p className="text-xs text-subtexto">Preencha o CEP de entrega acima para calcular o frete.</p>
+                )}
+
+                {canCalculateShipping && shippingOptions.length === 0 && !shippingError && (
+                  <button
+                    type="button"
+                    onClick={calculateShipping}
+                    disabled={calculatingShipping}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-rosa text-[#FAF7F2] text-sm font-medium hover:bg-rosa/90 transition-colors duration-200 disabled:opacity-60"
+                  >
+                    {calculatingShipping ? (
+                      <><Loader2 size={14} className="animate-spin" /> Calculando…</>
+                    ) : (
+                      <><Truck size={14} /> Calcular Frete</>
+                    )}
+                  </button>
+                )}
+
+                {shippingOptions.length > 0 && (
+                  <div className="space-y-2">
+                    {shippingOptions.map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        onClick={() => { setSelectedShipping(opt); setShippingValidationError(null) }}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm transition-all duration-200 ${
+                          selectedShipping?.id === opt.id
+                            ? 'border-rosa bg-rosa/5 text-titulo'
+                            : 'border-[#D9CBB8] bg-white/60 text-subtexto hover:border-rosa/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 transition-colors ${
+                            selectedShipping?.id === opt.id ? 'border-rosa bg-rosa' : 'border-[#D9CBB8]'
+                          }`} />
+                          <span className="font-medium text-titulo">{opt.name}</span>
+                          <span className="text-subtexto text-xs hidden sm:inline">· Correios · até {opt.delivery_time} dias úteis</span>
+                          <span className="text-subtexto text-xs sm:hidden">· {opt.delivery_time} dias</span>
+                        </div>
+                        <span className="font-medium text-dourado shrink-0 ml-3">
+                          R$ {opt.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </span>
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={calculateShipping}
+                      disabled={calculatingShipping}
+                      className="text-xs text-subtexto hover:text-rosa transition-colors mt-1 disabled:opacity-50"
+                    >
+                      {calculatingShipping ? 'Recalculando…' : 'Recalcular'}
+                    </button>
+                  </div>
+                )}
+
+                {shippingError && (
+                  <div className="space-y-3">
+                    <p className="text-sm text-subtexto">{shippingError}</p>
+                    <a
+                      href="https://wa.me/5511992930655"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm text-rosa hover:underline"
+                    >
+                      Falar no WhatsApp →
+                    </a>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={calculateShipping}
+                        disabled={calculatingShipping}
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-rosa text-[#FAF7F2] text-sm font-medium hover:bg-rosa/90 transition-colors duration-200 disabled:opacity-60 mt-1"
+                      >
+                        {calculatingShipping ? (
+                          <><Loader2 size={14} className="animate-spin" /> Calculando…</>
+                        ) : (
+                          <><Truck size={14} /> Tentar novamente</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {shippingValidationError && (
+                  <p className="text-red-400 text-xs">{shippingValidationError}</p>
+                )}
+              </div>
+
               {/* Submit (mobile) */}
               <div className="lg:hidden">
                 <SubmitButton loading={loading} finalTotal={finalTotal} />
@@ -427,13 +617,15 @@ export default function Checkout() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-subtexto">Frete</span>
-                  <span className={shippingEstimate === 'Grátis' ? 'text-green-600 font-medium' : 'text-titulo'}>
-                    {shippingEstimate}
+                  <span className="text-titulo">
+                    {selectedShipping
+                      ? `R$ ${selectedShipping.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                      : '—'}
                   </span>
                 </div>
-                {totalPrice < 150 && (
-                  <p className="text-xs text-subtexto bg-rosa-claro rounded-lg px-3 py-2">
-                    Frete grátis nas compras acima de R$ 150,00
+                {selectedShipping && (
+                  <p className="text-[11px] text-subtexto">
+                    {selectedShipping.name} · Correios · até {selectedShipping.delivery_time} dias úteis
                   </p>
                 )}
                 <div className="flex justify-between font-serif text-lg font-medium text-titulo pt-2 border-t border-[#D9CBB8]">
@@ -475,7 +667,7 @@ export default function Checkout() {
                 ) : (
                   <>
                     <CreditCard size={18} />
-                    Pagar com MercadoPago
+                    Finalizar Pagamento
                   </>
                 )}
               </button>

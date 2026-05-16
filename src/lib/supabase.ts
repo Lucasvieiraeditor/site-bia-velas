@@ -88,7 +88,19 @@ export async function fetchOrders(): Promise<Order[]> {
     .select('*')
     .order('created_at', { ascending: false })
   if (error) throw error
-  return (data ?? []) as Order[]
+  return (data ?? []).map((row) => {
+    const itens = Array.isArray(row.itens)
+      ? row.itens
+      : typeof row.itens === 'string'
+      ? (() => { try { return JSON.parse(row.itens) } catch { return [] } })()
+      : []
+    const endereco = row.endereco && typeof row.endereco === 'object' && !Array.isArray(row.endereco)
+      ? row.endereco
+      : typeof row.endereco === 'string'
+      ? (() => { try { return JSON.parse(row.endereco) } catch { return {} } })()
+      : {}
+    return { ...row, itens, endereco }
+  }) as Order[]
 }
 
 export async function updateOrderStatus(
@@ -96,6 +108,11 @@ export async function updateOrderStatus(
   status: Order['status'],
 ): Promise<void> {
   const { error } = await supabase.from('pedidos_bia').update({ status }).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteOrder(id: string): Promise<void> {
+  const { error } = await supabase.from('pedidos_bia').delete().eq('id', id)
   if (error) throw error
 }
 

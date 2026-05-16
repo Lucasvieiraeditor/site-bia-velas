@@ -71,15 +71,16 @@ export default function Products() {
       <main className="min-h-screen pt-16 md:pt-20 bg-offwhite">
         {/* Header */}
         <div className="bg-[#FAF7F2] border-b border-[#D9CBB8]">
-          <div className="max-w-6xl mx-auto px-5 md:px-8 py-14 text-center">
+          <div className="max-w-6xl mx-auto px-5 md:px-8 py-20 md:py-24 text-center">
             <ScrollReveal>
-              <p className="text-xs font-medium text-dourado tracking-[0.15em] uppercase mb-3">
+              <p className="text-[11px] font-medium text-dourado tracking-[0.22em] uppercase mb-4">
                 Nossa Coleção Completa
               </p>
               <h1 className="font-serif text-4xl md:text-5xl font-medium text-titulo">
                 A Nossa Coleção
               </h1>
-              <p className="section-subtitle mt-4 max-w-lg mx-auto">
+              <div className="w-8 h-px bg-dourado mx-auto mt-5" />
+              <p className="section-subtitle mt-6 max-w-md mx-auto">
                 Cada vela criada com intenção e cuidado — escolha a fragrância que conta a sua história.
               </p>
             </ScrollReveal>
@@ -118,7 +119,7 @@ export default function Products() {
         </div>
 
         {/* Products grid */}
-        <div className="max-w-6xl mx-auto px-5 md:px-8 py-12">
+        <div className="max-w-6xl mx-auto px-5 md:px-8 py-16 md:py-20">
           {error && (
             <div className="text-center py-8 text-subtexto text-sm">{error}</div>
           )}
@@ -130,16 +131,15 @@ export default function Products() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                className="grid grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10"
               >
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-soft animate-pulse">
-                    <div className="aspect-[4/3] bg-rosa-claro/60" />
-                    <div className="p-5 space-y-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="flex flex-col animate-pulse">
+                    <div className="aspect-[3/4] bg-rosa-claro/60 rounded-lg" />
+                    <div className="pt-4 space-y-2.5">
+                      <div className="h-2.5 bg-[#E4D8C8] rounded-full w-1/3" />
                       <div className="h-4 bg-[#E4D8C8] rounded-full w-3/4" />
-                      <div className="h-3 bg-[#E4D8C8] rounded-full w-1/2" />
-                      <div className="h-3 bg-[#E4D8C8] rounded-full w-full" />
-                      <div className="h-3 bg-[#E4D8C8] rounded-full w-2/3" />
+                      <div className="h-3 bg-[#E4D8C8] rounded-full w-1/4" />
                     </div>
                   </div>
                 ))}
@@ -173,7 +173,7 @@ export default function Products() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                className="grid grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10"
               >
                 {products.map((product, i) => (
                   <ProductCard key={product.id} product={product} delay={i * 0.05} />

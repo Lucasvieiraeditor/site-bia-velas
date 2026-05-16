@@ -10,6 +10,7 @@ export interface Product {
   imagens?: string
   estoque: number
   ativo: boolean
+  peso?: number
 }
 
 export interface CartItem {

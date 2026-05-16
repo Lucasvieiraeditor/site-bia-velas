@@ -47,22 +47,25 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-10">
             {links.map(({ to, label }) => (
               <Link
                 key={to}
                 to={to}
-                className={`text-sm font-medium transition-colors duration-200 relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:bg-rosa after:transition-all after:duration-300 ${
+                className={`text-sm tracking-wide transition-colors duration-200 relative after:absolute after:bottom-[-4px] after:left-0 after:h-px after:bg-rosa after:transition-all after:duration-300 ${
                   isActive(to)
-                    ? 'text-rosa after:w-full'
-                    : 'text-subtexto hover:text-titulo after:w-0 hover:after:w-full'
+                    ? 'text-rosa after:w-full font-medium'
+                    : 'text-subtexto hover:text-titulo after:w-0 hover:after:w-full font-normal'
                 }`}
               >
                 {label}
               </Link>
             ))}
-            <Link to="/produtos" className="btn-primary text-xs px-5 py-2.5">
-              Presentear
+            <Link
+              to="/produtos?categoria=Presente"
+              className="text-sm tracking-wide text-subtexto hover:text-titulo font-normal transition-colors duration-200 relative after:absolute after:bottom-[-4px] after:left-0 after:h-px after:bg-rosa after:transition-all after:duration-300 after:w-0 hover:after:w-full"
+            >
+              Presentes
             </Link>
           </nav>
 
@@ -120,8 +123,8 @@ export default function Navbar() {
                   {label}
                 </Link>
               ))}
-              <Link to="/produtos" className="btn-primary mt-2 w-full text-center">
-                Presentear alguém
+              <Link to="/produtos?categoria=Presente" className="btn-primary mt-2 w-full text-center">
+                Ver Presentes
               </Link>
             </nav>
           </motion.div>

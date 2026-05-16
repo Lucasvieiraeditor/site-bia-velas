@@ -9,7 +9,7 @@ import {
 import {
   supabase, signIn, signOut, getSession,
   fetchAllProducts, fetchOrders,
-  createProduct, updateProduct, deleteProduct, updateOrderStatus,
+  createProduct, updateProduct, deleteProduct, updateOrderStatus, deleteOrder,
   uploadProductImage, isSupabaseConfigured,
 } from '../lib/supabase'
 import { mockProducts } from '../data/products'
@@ -161,6 +161,7 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
     categoria: initial?.categoria ?? ('Relaxamento' as ProductCategory),
     estoque: initial?.estoque?.toString() ?? '10',
     ativo: initial?.ativo ?? true,
+    peso: initial?.peso?.toString() ?? '',
   })
   const [photos, setPhotos] = useState<string[]>(() => {
     if (initial?.imagens) return initial.imagens.split(',').filter(Boolean)
@@ -236,6 +237,7 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
         ...(photos.length > 0 && { imagens: photos.join(',') }),
         estoque: parseInt(form.estoque) || 0,
         ativo: form.ativo,
+        ...(form.peso ? { peso: parseInt(form.peso) } : {}),
       })
       onClose()
     } catch (err) {
@@ -329,7 +331,15 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
 
           <div>
             <label className="label">Aroma</label>
-            <input type="text" value={form.aroma} onChange={set('aroma')} placeholder="Lavanda & Baunilha" className="input-field" />
+            <select value={form.aroma} onChange={set('aroma')} className="input-field">
+              <option value="">Selecione o aroma</option>
+              <option value="Chá Branco">Chá Branco</option>
+              <option value="Vanilla Black">Vanilla Black</option>
+              <option value="Lavanda">Lavanda</option>
+              <option value="Capim Limão">Capim Limão</option>
+              <option value="Alecrim">Alecrim</option>
+              <option value="Bem Estar">Bem Estar</option>
+            </select>
           </div>
 
           <div>
@@ -343,7 +353,7 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="label">Preço (R$) *</label>
               <input type="number" value={form.preco} onChange={set('preco')} placeholder="89.90" step="0.01" min="0" className="input-field" required />
@@ -351,6 +361,10 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
             <div>
               <label className="label">Estoque</label>
               <input type="number" value={form.estoque} onChange={set('estoque')} placeholder="10" min="0" className="input-field" />
+            </div>
+            <div>
+              <label className="label">Peso (g)</label>
+              <input type="number" name="peso" value={form.peso} onChange={set('peso')} placeholder="80" inputMode="numeric" min="0" className="input-field" />
             </div>
           </div>
 
@@ -397,6 +411,10 @@ const statusConfig: Record<OrderStatus, { label: string; color: string }> = {
   entregue: { label: 'Entregue', color: 'bg-rosa-claro text-[#8C6840]' },
 }
 
+function getStatusCfg(status: string | null | undefined) {
+  return statusConfig[(status ?? 'aguardando') as OrderStatus] ?? statusConfig.aguardando
+}
+
 // ── Order Detail Modal ────────────────────────────────────────────────────────
 
 function OrderDetailModal({
@@ -425,10 +443,10 @@ function OrderDetailModal({
       >
         <div className="flex items-center justify-between px-6 py-5 border-b border-[#D9CBB8]">
           <div className="flex items-center gap-2">
-            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusConfig[order.status].color}`}>
-              {statusConfig[order.status].label}
+            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${getStatusCfg(order.status).color}`}>
+              {getStatusCfg(order.status).label}
             </span>
-            <span className="text-xs text-subtexto font-mono">#{order.id.slice(0, 8).toUpperCase()}</span>
+            <span className="text-xs text-subtexto font-mono">#{String(order.id).slice(0, 8).toUpperCase()}</span>
           </div>
           <button onClick={onClose} className="p-2 rounded-full hover:bg-rosa-claro text-subtexto transition-colors">
             <X size={18} />
@@ -448,10 +466,10 @@ function OrderDetailModal({
           <div className="pt-4 border-t border-[#D9CBB8]">
             <h3 className="font-serif text-base font-medium text-titulo mb-3">Endereço de entrega</h3>
             <div className="text-sm text-subtexto space-y-0.5">
-              <p>{order.endereco.rua}, {order.endereco.numero}</p>
-              {order.endereco.complemento && <p>{order.endereco.complemento}</p>}
-              <p>{order.endereco.bairro}</p>
-              <p>{order.endereco.cidade}, {order.endereco.estado} · CEP {order.endereco.cep}</p>
+              <p>{order.endereco?.rua}, {order.endereco?.numero}</p>
+              {order.endereco?.complemento && <p>{order.endereco.complemento}</p>}
+              <p>{order.endereco?.bairro}</p>
+              <p>{order.endereco?.cidade}, {order.endereco?.estado} · CEP {order.endereco?.cep}</p>
             </div>
           </div>
 
@@ -464,7 +482,7 @@ function OrderDetailModal({
           <div className="pt-4 border-t border-[#D9CBB8]">
             <h3 className="font-serif text-base font-medium text-titulo mb-3">Produtos</h3>
             <div className="space-y-3">
-              {order.itens.map((item) => (
+              {(Array.isArray(order.itens) ? order.itens : []).map((item) => (
                 <div key={item.produto_id} className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl overflow-hidden bg-rosa-claro shrink-0">
                     <img src={item.imagem_url} alt={item.nome} className="w-full h-full object-cover" />
@@ -509,6 +527,64 @@ function OrderDetailModal({
   )
 }
 
+// ── Delete Order Modal ────────────────────────────────────────────────────────
+
+function DeleteOrderModal({
+  order,
+  loading,
+  onClose,
+  onConfirm,
+}: {
+  order: Order
+  loading: boolean
+  onClose: () => void
+  onConfirm: () => void
+}) {
+  const date = new Date(order.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-titulo/40 backdrop-blur-[2px] flex items-center justify-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ type: 'spring', damping: 20, stiffness: 260 }}
+        className="bg-[#FAF7F2] rounded-2xl shadow-soft-lg w-full max-w-sm p-6"
+      >
+        <h2 className="font-serif text-lg font-medium text-titulo mb-3">Excluir Pedido</h2>
+        <p className="text-sm text-subtexto leading-relaxed mb-6">
+          Tem certeza que deseja excluir o pedido de{' '}
+          <strong className="text-titulo">{order.cliente_nome}</strong> realizado em {date}?
+        </p>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={loading}
+            className="btn-secondary flex-1 justify-center py-3 disabled:opacity-60"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-60"
+          >
+            {loading ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={15} />}
+            {loading ? 'Excluindo…' : 'Excluir'}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 // ── Main Admin Dashboard ───────────────────────────────────────────────────────
 
 type Tab = 'dashboard' | 'produtos' | 'pedidos'
@@ -524,9 +600,13 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
   const [newProduct, setNewProduct] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null)
+  const [deletingOrderLoading, setDeletingOrderLoading] = useState(false)
+  const [loadError, setLoadError] = useState('')
 
   const load = useCallback(async () => {
     setLoadingData(true)
+    setLoadError('')
     try {
       if (isSupabaseConfigured) {
         const [prods, ords] = await Promise.all([fetchAllProducts(), fetchOrders()])
@@ -573,6 +653,7 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
       }
     } catch (e) {
       console.error('Erro ao carregar dados:', e)
+      setLoadError(e instanceof Error ? e.message : 'Erro ao conectar com o banco de dados.')
     } finally {
       setLoadingData(false)
     }
@@ -679,6 +760,22 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
     }
   }
 
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return
+    setDeletingOrderLoading(true)
+    try {
+      if (isSupabaseConfigured) {
+        await deleteOrder(String(orderToDelete.id))
+      }
+      setOrders((prev) => prev.filter((o) => o.id !== orderToDelete.id))
+      setOrderToDelete(null)
+    } catch {
+      alert('Erro ao excluir pedido.')
+    } finally {
+      setDeletingOrderLoading(false)
+    }
+  }
+
   const filteredProducts = products.filter((p) =>
     p.nome.toLowerCase().includes(productSearch.toLowerCase()) ||
     p.aroma.toLowerCase().includes(productSearch.toLowerCase()),
@@ -735,6 +832,13 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
             </button>
           ))}
         </div>
+
+        {loadError && (
+          <div className="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-600">
+            <AlertCircle size={16} className="shrink-0" />
+            <span><strong>Erro Supabase:</strong> {loadError}</span>
+          </div>
+        )}
 
         {loadingData ? (
           <div className="flex items-center justify-center py-24">
@@ -801,16 +905,29 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
                     {orders.slice(0, 5).map((order) => (
                       <div key={order.id} className="flex items-center justify-between py-3 border-b border-[#D9CBB8] last:border-0">
                         <div>
-                          <p className="text-sm font-medium text-titulo">{order.cliente_nome}</p>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedOrder(order)}
+                            className="text-sm font-medium text-titulo hover:text-rosa transition-colors duration-200 text-left"
+                          >
+                            {order.cliente_nome}
+                          </button>
                           <p className="text-xs text-subtexto">{new Date(order.created_at).toLocaleDateString('pt-BR')}</p>
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="font-serif text-sm text-dourado">
-                            R$ {order.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            R$ {(order.valor_total ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                           </span>
-                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusConfig[order.status].color}`}>
-                            {statusConfig[order.status].label}
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${getStatusCfg(order.status).color}`}>
+                            {getStatusCfg(order.status).label}
                           </span>
+                          <button
+                            onClick={() => setOrderToDelete(order)}
+                            className="p-1.5 rounded-lg hover:bg-red-50 text-subtexto hover:text-red-500 transition-colors"
+                            title="Excluir pedido"
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                       </div>
                     ))}
@@ -959,35 +1076,48 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
 
                 <div className="space-y-4">
                   {filteredOrders.map((order) => (
-                    <div key={order.id} className="bg-[#FAF7F2] rounded-2xl shadow-soft p-5 cursor-pointer" onClick={() => setSelectedOrder(order)}>
+                    <div key={order.id} className="bg-[#FAF7F2] rounded-2xl shadow-soft p-5">
                       <div className="flex items-start justify-between gap-4 flex-wrap">
                         <div>
                           <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusConfig[order.status].color}`}>
-                              {statusConfig[order.status].label}
+                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${getStatusCfg(order.status).color}`}>
+                              {getStatusCfg(order.status).label}
                             </span>
                             <span className="text-xs text-subtexto font-mono">
-                              #{order.id.slice(0, 8).toUpperCase()}
+                              #{String(order.id).slice(0, 8).toUpperCase()}
                             </span>
                           </div>
-                          <p className="font-medium text-titulo">{order.cliente_nome}</p>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedOrder(order)}
+                            className="font-medium text-titulo hover:text-rosa transition-colors duration-200 text-left"
+                          >
+                            {order.cliente_nome}
+                          </button>
                           <p className="text-sm text-subtexto">{order.cliente_email} · {order.cliente_telefone}</p>
                           <p className="text-xs text-subtexto mt-1">
-                            {order.endereco.cidade}, {order.endereco.estado} ·{' '}
+                            {order.endereco?.cidade}, {order.endereco?.estado} ·{' '}
                             {new Date(order.created_at).toLocaleString('pt-BR')}
                           </p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex flex-col items-end gap-1">
                           <p className="font-serif text-xl font-medium text-dourado">
-                            R$ {order.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            R$ {(order.valor_total ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                           </p>
-                          <p className="text-xs text-subtexto mt-0.5">{order.itens.length} {order.itens.length === 1 ? 'item' : 'itens'}</p>
+                          <p className="text-xs text-subtexto">{(Array.isArray(order.itens) ? order.itens : []).length} {(Array.isArray(order.itens) ? order.itens : []).length === 1 ? 'item' : 'itens'}</p>
+                          <button
+                            onClick={() => setOrderToDelete(order)}
+                            className="p-1.5 rounded-lg hover:bg-red-50 text-subtexto hover:text-red-500 transition-colors"
+                            title="Excluir pedido"
+                          >
+                            <Trash2 size={14} />
+                          </button>
                         </div>
                       </div>
 
                       {/* Items */}
                       <div className="mt-4 pt-4 border-t border-[#D9CBB8] flex gap-2 flex-wrap">
-                        {order.itens.map((item) => (
+                        {(Array.isArray(order.itens) ? order.itens : []).map((item) => (
                           <div key={item.produto_id} className="flex items-center gap-2 bg-offwhite rounded-xl px-3 py-2">
                             <div className="w-8 h-8 rounded-lg overflow-hidden bg-rosa-claro">
                               <img src={item.imagem_url} alt={item.nome} className="w-full h-full object-cover" />
@@ -1050,6 +1180,16 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
               await handleUpdateOrderStatus(id, status)
               setSelectedOrder((prev) => (prev ? { ...prev, status } : null))
             }}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {orderToDelete && (
+          <DeleteOrderModal
+            order={orderToDelete}
+            loading={deletingOrderLoading}
+            onClose={() => setOrderToDelete(null)}
+            onConfirm={handleDeleteOrder}
           />
         )}
       </AnimatePresence>
