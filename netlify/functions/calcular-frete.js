@@ -32,13 +32,17 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         from: { postal_code: ME_CEP_ORIGEM },
         to: { postal_code: cepDestino },
-        package: {
-          weight: peso / 1000,
-          height: 15,
-          width: 15,
-          length: 15,
-          quantity: quantidade,
-        },
+        products: [
+          {
+            id: '1',
+            width: 15,
+            height: 15,
+            length: 15,
+            weight: peso / 1000,
+            insurance_value: 0,
+            quantity: quantidade,
+          },
+        ],
       }),
     })
 
