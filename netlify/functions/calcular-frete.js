@@ -18,8 +18,28 @@ exports.handler = async (event) => {
     return { statusCode: 405, headers: CORS_HEADERS, body: JSON.stringify({ error: 'Method Not Allowed' }) }
   }
 
+  console.log('Função iniciada', event.body)
+
   try {
     const { cepDestino, peso, quantidade } = JSON.parse(event.body)
+
+    const requestBody = JSON.stringify({
+      from: { postal_code: ME_CEP_ORIGEM },
+      to: { postal_code: cepDestino },
+      products: [
+        {
+          id: '1',
+          width: 15,
+          height: 15,
+          length: 15,
+          weight: peso / 1000,
+          insurance_value: 0,
+          quantity: quantidade,
+        },
+      ],
+    })
+
+    console.log('Chamando API Melhor Envio', requestBody)
 
     const res = await fetch('https://melhorenvio.com.br/api/v2/me/shipment/calculate', {
       method: 'POST',
@@ -29,26 +49,20 @@ exports.handler = async (event) => {
         'Authorization': `Bearer ${ME_TOKEN}`,
         'User-Agent': 'ByBiaggi (bia@biavelas.com.br)',
       },
-      body: JSON.stringify({
-        from: { postal_code: ME_CEP_ORIGEM },
-        to: { postal_code: cepDestino },
-        products: [
-          {
-            id: '1',
-            width: 15,
-            height: 15,
-            length: 15,
-            weight: peso / 1000,
-            insurance_value: 0,
-            quantity: quantidade,
-          },
-        ],
-      }),
+      body: requestBody,
     })
+
+    console.log('Status da resposta', res.status)
+
+    if (!res.ok) {
+      const errorText = await res.text()
+      console.log('Erro na API', errorText)
+    }
 
     const data = await res.json()
     return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify(data) }
   } catch (err) {
+    console.log('Erro capturado', { message: err.message, stack: err.stack })
     return {
       statusCode: 500,
       headers: CORS_HEADERS,
