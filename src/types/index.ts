@@ -5,7 +5,7 @@ export interface Product {
   descricao: string
   aroma: string
   preco: number
-  categoria: 'Relaxamento' | 'Energia' | 'Presente' | 'Edição Limitada'
+  categoria: 'Coleção' | 'Lembrancinhas' | 'Kit' | 'Presente'
   imagem_url: string
   imagens?: string
   estoque: number

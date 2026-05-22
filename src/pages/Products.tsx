@@ -11,10 +11,10 @@ import type { Product, ProductCategory } from '../types'
 
 const categories: Array<'Todas' | ProductCategory> = [
   'Todas',
-  'Relaxamento',
-  'Energia',
+  'Coleção',
+  'Lembrancinhas',
+  'Kit',
   'Presente',
-  'Edição Limitada',
 ]
 
 export default function Products() {
@@ -81,7 +81,7 @@ export default function Products() {
               </h1>
               <div className="w-8 h-px bg-dourado mx-auto mt-5" />
               <p className="section-subtitle mt-6 max-w-md mx-auto">
-                Cada vela criada com intenção e cuidado — escolha a fragrância que conta a sua história.
+                Cada vela criada com intenção e cuidado, escolha a fragrância que conta a sua história.
               </p>
             </ScrollReveal>
           </div>

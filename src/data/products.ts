@@ -11,7 +11,7 @@ export const mockProducts: Product[] = [
       'Deixe o fim do dia chegar com suavidade. Nossa blend de lavanda francesa e baunilha de Madagascar cria um acolhimento invisível que abraça o ambiente e aquieta os pensamentos.',
     aroma: 'Lavanda & Baunilha',
     preco: 89.9,
-    categoria: 'Relaxamento',
+    categoria: 'Coleção',
     imagem_url:
       'https://images.unsplash.com/photo-1602523961358-f9f03dd557db?auto=format&fit=crop&w=600&q=80',
     estoque: 15,
@@ -25,7 +25,7 @@ export const mockProducts: Product[] = [
       'Acenda antes do café e sinta o dia começar com intenção. O frescor do eucalipto australiano e a vivacidade do limão siciliano despertam os sentidos com leveza e clareza.',
     aroma: 'Eucalipto & Limão Siciliano',
     preco: 79.9,
-    categoria: 'Energia',
+    categoria: 'Coleção',
     imagem_url:
       'https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=600&q=80',
     estoque: 20,
@@ -36,10 +36,10 @@ export const mockProducts: Product[] = [
     created_at: '2024-01-03T00:00:00Z',
     nome: 'Vela Abraço de Inverno',
     descricao:
-      'Para os dias em que o vento chega mais frio e a alma pede aconchego. Canela do Ceilão e âmbar dourado criam um calor que vai além da chama — é quase um abraço.',
+      'Para os dias em que o vento chega mais frio e a alma pede aconchego. Canela do Ceilão e âmbar dourado criam um calor que vai além da chama, é quase um abraço.',
     aroma: 'Canela & Âmbar',
     preco: 94.9,
-    categoria: 'Relaxamento',
+    categoria: 'Coleção',
     imagem_url:
       'https://images.unsplash.com/photo-1574175485576-2e5b57f2a98c?auto=format&fit=crop&w=600&q=80',
     estoque: 12,
@@ -67,7 +67,7 @@ export const mockProducts: Product[] = [
       'Como entrar em um jardim florido em plena primavera. Rosas de Bulgária e figo fresco se entrelaçam em uma fragrância verde e floral que evoca liberdade e alegria.',
     aroma: 'Rosa & Figo',
     preco: 84.9,
-    categoria: 'Energia',
+    categoria: 'Coleção',
     imagem_url:
       'https://images.unsplash.com/photo-1563241527-3004b7be0acb?auto=format&fit=crop&w=600&q=80',
     estoque: 18,
@@ -81,7 +81,7 @@ export const mockProducts: Product[] = [
       'Feche os olhos e deixe a brisa entrar. Sal marinho, algas do Atlântico e um toque de madeira flutuante criam a memória de uma tarde à beira-mar.',
     aroma: 'Sal Marinho & Madeira Flutuante',
     preco: 89.9,
-    categoria: 'Relaxamento',
+    categoria: 'Coleção',
     imagem_url:
       'https://images.unsplash.com/photo-1559535332-db9971090158?auto=format&fit=crop&w=600&q=80',
     estoque: 14,
@@ -95,7 +95,7 @@ export const mockProducts: Product[] = [
       'Uma criação especial que chega uma vez ao ano. Laranja com cravo, pinho e patchouli formam a fragrância mais reconfortante do inverno. Em embalagem presente exclusiva.',
     aroma: 'Laranja, Cravo & Pinho',
     preco: 129.9,
-    categoria: 'Edição Limitada',
+    categoria: 'Kit',
     imagem_url:
       'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?auto=format&fit=crop&w=600&q=80',
     estoque: 5,
@@ -106,7 +106,7 @@ export const mockProducts: Product[] = [
     created_at: '2024-01-08T00:00:00Z',
     nome: 'Vela Sonhos de Mel',
     descricao:
-      'Para as noites que pedem doçura. Mel silvestre e baunilha cremosa formam uma fragrância que parece um mimo — ideal para quem precisa de cuidado e acolhimento.',
+      'Para as noites que pedem doçura. Mel silvestre e baunilha cremosa formam uma fragrância que parece um mimo, ideal para quem precisa de cuidado e acolhimento.',
     aroma: 'Mel & Baunilha Cremosa',
     preco: 99.9,
     categoria: 'Presente',

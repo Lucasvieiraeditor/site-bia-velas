@@ -28,7 +28,7 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
       transition={{ duration: 0.65, delay, ease: [0.25, 0.1, 0.25, 1] }}
       className="flex flex-col group"
     >
-      {/* Portrait image — takes the visual weight of the card */}
+      {/* Portrait image */}
       <div className="relative aspect-[3/4] overflow-hidden bg-rosa-claro">
         {!imgError ? (
           <img
@@ -44,12 +44,12 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
           </div>
         )}
 
-        {/* Hover overlay — appears only on mouse-over */}
+        {/* Hover overlay */}
         <div className="absolute inset-0 bg-titulo/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6 pointer-events-none group-hover:pointer-events-auto">
           <button
             onClick={handleAdd}
             disabled={product.estoque === 0}
-            className={`translate-y-3 group-hover:translate-y-0 transition-transform duration-300 ease-out flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium ${
+            className={`translate-y-3 group-hover:translate-y-0 transition-transform duration-300 ease-out flex items-center gap-2 px-6 py-2.5 rounded-full text-[13px] font-medium tracking-wide ${
               added
                 ? 'bg-[#FAF7F2] text-green-700'
                 : product.estoque === 0
@@ -69,31 +69,37 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
 
         {/* Badges */}
         {product.estoque <= 5 && product.estoque > 0 && (
-          <span className="absolute top-3 left-3 text-[9px] font-medium px-2.5 py-1 rounded-full bg-[#FAF7F2]/90 text-dourado tracking-wide">
+          <span className="absolute top-3 left-3 text-[9px] font-medium px-2.5 py-1 rounded-full bg-[#FAF7F2]/90 text-dourado tracking-widest uppercase">
             Últimas unidades
           </span>
         )}
 
         {product.estoque === 0 && (
           <div className="absolute inset-0 bg-[#F5EFE6]/45 flex items-center justify-center">
-            <span className="text-xs font-medium text-subtexto bg-[#FAF7F2]/80 px-4 py-2 rounded-full">
+            <span className="text-xs font-medium text-subtexto bg-[#FAF7F2]/80 px-4 py-2 rounded-full tracking-wide">
               Esgotado
             </span>
           </div>
         )}
       </div>
 
-      {/* Info below image — minimal and elegant */}
+      {/* Info below image */}
       <div className="pt-5">
-        <p className="text-xs font-medium text-subtexto/60 tracking-widest uppercase mb-2">
+        {/* Categoria com dot accent */}
+        <p className="flex items-center gap-1.5 text-[10px] font-medium text-subtexto/50 tracking-[0.18em] uppercase mb-2">
+          <span className="w-1 h-1 rounded-full bg-rosa/50 inline-block flex-shrink-0" />
           {product.categoria}
         </p>
         <h3 className="font-serif text-base sm:text-[1.05rem] font-medium text-titulo leading-snug">
           {product.nome}
         </h3>
-        <p className="font-serif text-dourado font-normal text-[0.875rem] mt-3">
-          R$ {product.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-        </p>
+        {/* Linha separadora sutil + preço */}
+        <div className="flex items-center gap-3 mt-3.5">
+          <div className="h-px flex-1 bg-[#D9CBB8]/60" />
+          <p className="font-serif text-dourado font-medium text-[0.9rem] tracking-wide">
+            R$ {product.preco.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </p>
+        </div>
       </div>
     </motion.article>
   )

@@ -14,7 +14,7 @@ export default {
       },
       fontFamily: {
         serif: ['"Playfair Display"', 'Georgia', 'serif'],
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['"Raleway"', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
         rose: '0 4px 24px rgba(184, 149, 106, 0.22)',

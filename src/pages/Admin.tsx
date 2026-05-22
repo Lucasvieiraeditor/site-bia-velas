@@ -66,7 +66,7 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
           <h1 className="font-serif text-2xl font-medium text-titulo">Área Admin</h1>
           {!isSupabaseConfigured && (
             <p className="text-xs text-dourado mt-2 bg-[#EDE5D8] rounded-lg px-3 py-2">
-              Modo demonstração — configure o Supabase para usar autenticação real.
+              Modo demonstração: configure o Supabase para usar autenticação real.
             </p>
           )}
         </div>
@@ -144,7 +144,7 @@ function StatCard({
 
 // ── Product Form Modal ─────────────────────────────────────────────────────────
 
-const CATEGORIES: ProductCategory[] = ['Relaxamento', 'Energia', 'Presente', 'Edição Limitada']
+const CATEGORIES: ProductCategory[] = ['Coleção', 'Lembrancinhas', 'Kit', 'Presente']
 
 interface ProductFormProps {
   initial?: Product
@@ -158,7 +158,7 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
     descricao: initial?.descricao ?? '',
     aroma: initial?.aroma ?? '',
     preco: initial?.preco?.toString() ?? '',
-    categoria: initial?.categoria ?? ('Relaxamento' as ProductCategory),
+    categoria: initial?.categoria ?? ('Coleção' as ProductCategory),
     estoque: initial?.estoque?.toString() ?? '10',
     ativo: initial?.ativo ?? true,
     peso: initial?.peso?.toString() ?? '',
