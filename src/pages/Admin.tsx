@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Package, ShoppingBag, TrendingUp, Plus, Edit2, Trash2,
   Eye, EyeOff, X, Check, Loader2, Search, ChevronDown, UploadCloud,
-  AlertCircle
+  AlertCircle, Truck
 } from 'lucide-react'
 import {
   supabase, signIn, signOut, getSession,
