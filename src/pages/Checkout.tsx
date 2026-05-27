@@ -215,6 +215,11 @@ export default function Checkout() {
         itens: orderItems,
         valor_total: finalTotal,
         status: 'aguardando',
+        ...(selectedShipping && {
+          frete_nome: selectedShipping.name,
+          frete_prazo: selectedShipping.delivery_time,
+          frete_valor: selectedShipping.price,
+        }),
       }
 
       let orderId = `local-${Date.now()}`

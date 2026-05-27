@@ -46,6 +46,9 @@ export interface Order {
   valor_total: number
   status: 'aguardando' | 'pago' | 'enviado' | 'entregue'
   mercadopago_id?: string
+  frete_nome?: string
+  frete_prazo?: number
+  frete_valor?: number
 }
 
 export type OrderStatus = Order['status']

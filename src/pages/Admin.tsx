@@ -499,11 +499,23 @@ function OrderDetailModal({
             </div>
           </div>
 
-          <div className="pt-4 border-t border-[#D9CBB8] flex items-center justify-between">
-            <span className="text-sm font-medium text-titulo">Total</span>
-            <span className="font-serif text-xl font-medium text-dourado">
-              R$ {order.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </span>
+          <div className="pt-4 border-t border-[#D9CBB8] space-y-2">
+            <div className="flex items-center justify-between text-sm text-subtexto">
+              <span>Subtotal</span>
+              <span>R$ {(Array.isArray(order.itens) ? order.itens : []).reduce((s, i) => s + i.preco * i.quantidade, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+            </div>
+            {order.frete_nome && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-subtexto">Frete · {order.frete_nome} · até {order.frete_prazo} dias úteis</span>
+                <span className="text-titulo font-medium">R$ {(order.frete_valor ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between pt-2 border-t border-[#D9CBB8]">
+              <span className="text-sm font-medium text-titulo">Total</span>
+              <span className="font-serif text-xl font-medium text-dourado">
+                R$ {order.valor_total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
           </div>
 
           <div className="pt-4 border-t border-[#D9CBB8] flex items-center gap-2">
@@ -1129,6 +1141,12 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
                           </div>
                         ))}
                       </div>
+                      {order.frete_nome && (
+                        <div className="mt-2 flex items-center gap-2 text-xs text-subtexto">
+                          <Truck size={12} className="shrink-0" />
+                          <span>Frete · {order.frete_nome} · até {order.frete_prazo} dias úteis · R$ {(order.frete_valor ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      )}
 
                       {/* Status update */}
                       <div className="mt-4 flex items-center gap-2">
