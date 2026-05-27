@@ -42,9 +42,10 @@ function Hero() {
       <div className="absolute inset-0">
         <img
           src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/Hero.jpeg"
-          alt=""
+          alt="Velas aromáticas artesanais ByBiaggi"
           className="w-full h-full object-cover"
           loading="eager"
+          fetchPriority="high"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-titulo/30 via-titulo/58 to-titulo/75" />
       </div>
@@ -323,25 +324,16 @@ function About() {
 
               <div className="space-y-4 text-subtexto leading-relaxed text-[0.9375rem]">
                 <p>
-                  A ByBiaggi nasceu em um momento de dor… Mas foi justamente ali que tudo começou a ganhar um novo sentido.
+                  A ByBiaggi nasceu do desejo de transformar ambientes em experiências. Mais do que velas aromáticas, criamos sensações, memórias e momentos de pausa em meio à correria da vida. Cada detalhe carrega propósito: das fragrâncias cuidadosamente escolhidas ao acabamento artesanal de cada peça. Trabalhamos com matérias-primas de alta qualidade, buscando unir sofisticação, aconchego e identidade olfativa em produtos que perfumam a casa e acolhem a alma.
                 </p>
                 <p>
-                  Em meio a um período desafiador, uma das sócias encontrou no artesanato uma forma de terapia, de reconexão e de ressignificar sentimentos. Entre aromas, texturas e silêncio, surgiu algo maior do que se imaginava: um propósito.
+                  A marca nasceu em um momento de recomeço. O que começou como um refúgio afetivo e uma forma de transformar sentimentos em criação, hoje se tornou uma empresa construída com amor, sensibilidade e verdade.
                 </p>
                 <p>
-                  O que começou como um refúgio, aos poucos se transformou em visão. Nascia ali a ideia de uma marca que não venderia apenas produtos, mas experiências, um universo onde cada detalhe fosse pensado para despertar sensações, acolher e transformar momentos simples em algo especial.
-                </p>
-                <p>
-                  Com esse sonho, convidou mais três mulheres para caminharem juntas nessa jornada. E assim, unidas, deram início à construção dessa história.
-                </p>
-                <p>
-                  A ByBiaggi nasce da sensibilidade, da força feminina e da coragem de recomeçar. Cada vela, cada fragrância e cada criação carrega esse propósito: tocar, envolver e criar memórias através dos sentidos.
+                  Na ByBiaggi, acreditamos que o perfume tem o poder de marcar histórias, despertar emoções e transformar uma casa em lar. Por isso, cada vela, difusor e aroma é desenvolvido para proporcionar experiências únicas, elegantes e inesquecíveis.
                 </p>
                 <p className="font-serif text-lg font-medium text-titulo italic leading-snug">
-                  "Hoje, mais do que uma marca, somos uma experiência. Uma pausa. Um cuidado. Um sentir."
-                </p>
-                <p className="text-xs text-subtexto tracking-widest uppercase">
-                  ByBiaggi não é apenas uma vela. É uma experiência sensorial!
+                  "ByBiaggi, essência em cada chama."
                 </p>
               </div>
 

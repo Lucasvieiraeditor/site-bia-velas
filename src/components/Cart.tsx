@@ -98,6 +98,7 @@ export default function Cart() {
                       <img
                         src={item.product.imagem_url}
                         alt={item.product.nome}
+                        loading="lazy"
                         className="w-full h-full object-cover"
                       />
                     </div>

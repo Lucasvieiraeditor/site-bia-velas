@@ -21,6 +21,7 @@ export default function Footer() {
             src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
             alt="By Biaggi"
             className="w-[150px] md:w-[190px] h-auto"
+            loading="lazy"
             style={{ objectFit: 'contain', display: 'block' }}
           />
         </Link>
@@ -48,10 +49,10 @@ export default function Footer() {
         {/* Contato */}
         <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-subtexto/70 mb-10">
           <a
-            href="mailto:bia@biavelas.com.br"
+            href="mailto:atendimentobybiaggi1@hotmail.com"
             className="hover:text-rosa transition-colors duration-200"
           >
-            bia@biavelas.com.br
+            atendimentobybiaggi1@hotmail.com
           </a>
           <span className="text-[#D9CBB8] hidden sm:inline" aria-hidden>·</span>
           <a

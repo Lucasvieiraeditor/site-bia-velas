@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://bybiaggi.com.br/sitemap.xml

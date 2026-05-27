@@ -58,6 +58,7 @@ export default function Navbar() {
               src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
               alt="By Biaggi"
               className="h-14 md:h-20 w-auto"
+              loading="eager"
               style={{ objectFit: 'contain', display: 'block' }}
             />
           </Link>
@@ -140,7 +141,8 @@ export default function Navbar() {
                   <img
                     src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
                     alt="By Biaggi"
-                    className="h-10 w-auto brightness-0 invert"
+                    className="w-[140px] h-auto"
+                    style={{ objectFit: 'contain' }}
                   />
                 </Link>
                 <button
