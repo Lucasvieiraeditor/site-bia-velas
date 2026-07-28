@@ -14,7 +14,9 @@ export interface Product {
 }
 
 export interface CartItem {
+  id: string
   product: Product
+  aroma: string
   quantidade: number
 }
 

@@ -13,6 +13,7 @@ import {
   uploadProductImage, isSupabaseConfigured,
 } from '../lib/supabase'
 import { mockProducts } from '../data/products'
+import { parseAromas } from '../lib/aromas'
 import type { Product, Order, OrderStatus, ProductCategory } from '../types'
 
 // ── Auth Gate ─────────────────────────────────────────────────────────────────
@@ -142,6 +143,64 @@ function StatCard({
   )
 }
 
+// ── Aroma Tag Input ────────────────────────────────────────────────────────────
+
+function AromaTagInput({ value, onChange }: { value: string[]; onChange: (tags: string[]) => void }) {
+  const [input, setInput] = useState('')
+
+  const addTag = (raw: string) => {
+    const tag = raw.trim()
+    if (!tag || value.includes(tag)) { setInput(''); return }
+    onChange([...value, tag])
+    setInput('')
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault()
+      addTag(input)
+    } else if (e.key === 'Backspace' && !input && value.length > 0) {
+      onChange(value.slice(0, -1))
+    }
+  }
+
+  const removeTag = (tag: string) => onChange(value.filter((t) => t !== tag))
+
+  return (
+    <div>
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={() => addTag(input)}
+        placeholder="Digite um aroma e pressione Enter ou vírgula"
+        className="input-field"
+      />
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2.5">
+          {value.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1.5 bg-rosa-claro text-titulo text-xs font-medium pl-3 pr-1.5 py-1.5 rounded-full"
+            >
+              {tag}
+              <button
+                type="button"
+                onClick={() => removeTag(tag)}
+                className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-rosa/30 text-subtexto hover:text-titulo transition-colors"
+                aria-label={`Remover aroma ${tag}`}
+              >
+                <X size={10} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Product Form Modal ─────────────────────────────────────────────────────────
 
 const CATEGORIES: ProductCategory[] = ['Coleção', 'Lembrancinhas', 'Kit', 'Presente']
@@ -156,13 +215,13 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
   const [form, setForm] = useState({
     nome: initial?.nome ?? '',
     descricao: initial?.descricao ?? '',
-    aroma: initial?.aroma ?? '',
     preco: initial?.preco?.toString() ?? '',
     categoria: initial?.categoria ?? ('Coleção' as ProductCategory),
     estoque: initial?.estoque?.toString() ?? '10',
     ativo: initial?.ativo ?? true,
     peso: initial?.peso?.toString() ?? '',
   })
+  const [aromaTags, setAromaTags] = useState<string[]>(() => parseAromas(initial?.aroma))
   const [photos, setPhotos] = useState<string[]>(() => {
     if (initial?.imagens) return initial.imagens.split(',').filter(Boolean)
     if (initial?.imagem_url) return [initial.imagem_url]
@@ -230,7 +289,7 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
       await onSave({
         nome: form.nome,
         descricao: form.descricao,
-        aroma: form.aroma,
+        aroma: aromaTags.join(', '),
         preco: parseFloat(form.preco),
         categoria: form.categoria,
         imagem_url: photos[0] || 'https://images.unsplash.com/photo-1602523961358-f9f03dd557db?auto=format&fit=crop&w=600&q=80',
@@ -330,16 +389,8 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
           </div>
 
           <div>
-            <label className="label">Aroma</label>
-            <select value={form.aroma} onChange={set('aroma')} className="input-field">
-              <option value="">Selecione o aroma</option>
-              <option value="Chá Branco">Chá Branco</option>
-              <option value="Vanilla Black">Vanilla Black</option>
-              <option value="Lavanda">Lavanda</option>
-              <option value="Capim Limão">Capim Limão</option>
-              <option value="Alecrim">Alecrim</option>
-              <option value="Bem Estar">Bem Estar</option>
-            </select>
+            <label className="label">Aromas</label>
+            <AromaTagInput value={aromaTags} onChange={setAromaTags} />
           </div>
 
           <div>
@@ -1136,7 +1187,7 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
                             </div>
                             <div>
                               <p className="text-xs font-medium text-titulo leading-none">{item.nome}</p>
-                              <p className="text-[10px] text-subtexto mt-0.5">x{item.quantidade}</p>
+                              <p className="text-[10px] text-subtexto mt-0.5">{item.aroma ? `${item.aroma} · ` : ''}x{item.quantidade}</p>
                             </div>
                           </div>
                         ))}

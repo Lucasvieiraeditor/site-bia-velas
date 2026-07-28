@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ShoppingBag, Check } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import { parseAromas } from '../lib/aromas'
 import type { Product } from '../types'
 
 interface ProductCardProps {
@@ -14,11 +15,26 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
   const [added, setAdded] = useState(false)
   const [imgError, setImgError] = useState(false)
 
+  const aromas = parseAromas(product.aroma)
+  const [selectedAroma, setSelectedAroma] = useState(aromas.length === 1 ? aromas[0] : '')
+  const [showAromaWarning, setShowAromaWarning] = useState(false)
+
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation()
-    addItem(product)
+    if (aromas.length > 1 && !selectedAroma) {
+      setShowAromaWarning(true)
+      setTimeout(() => setShowAromaWarning(false), 2500)
+      return
+    }
+    addItem(product, selectedAroma)
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
+  }
+
+  const handlePickAroma = (e: React.MouseEvent, aroma: string) => {
+    e.stopPropagation()
+    setSelectedAroma(aroma)
+    setShowAromaWarning(false)
   }
 
   return (
@@ -46,25 +62,50 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
 
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-titulo/25 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-6 pointer-events-none group-hover:pointer-events-auto">
-          <button
-            onClick={handleAdd}
-            disabled={product.estoque === 0}
-            className={`translate-y-3 group-hover:translate-y-0 transition-transform duration-300 ease-out flex items-center gap-2 px-6 py-2.5 rounded-full text-[13px] font-medium tracking-wide ${
-              added
-                ? 'bg-[#FAF7F2] text-green-700'
-                : product.estoque === 0
-                ? 'bg-[#FAF7F2]/70 text-subtexto cursor-not-allowed'
-                : 'bg-[#FAF7F2]/90 text-titulo hover:bg-[#FAF7F2]'
-            } transition-colors duration-200`}
-          >
-            {added ? (
-              <><Check size={13} /> Adicionado</>
-            ) : product.estoque === 0 ? (
-              'Esgotado'
-            ) : (
-              <><ShoppingBag size={13} /> Adicionar</>
+          <div className="translate-y-3 group-hover:translate-y-0 transition-transform duration-300 ease-out flex flex-col items-center gap-2 px-4 max-w-full">
+            {aromas.length > 1 && (
+              <div className="flex flex-wrap items-center justify-center gap-1.5">
+                {aromas.map((aroma) => (
+                  <button
+                    key={aroma}
+                    type="button"
+                    onClick={(e) => handlePickAroma(e, aroma)}
+                    className={`px-3 py-1 rounded-full text-[11px] font-medium transition-colors duration-200 ${
+                      selectedAroma === aroma
+                        ? 'bg-rosa text-white'
+                        : 'bg-[#FAF7F2]/90 text-titulo hover:bg-[#FAF7F2]'
+                    }`}
+                  >
+                    {aroma}
+                  </button>
+                ))}
+              </div>
             )}
-          </button>
+            {showAromaWarning && (
+              <p className="text-[11px] text-[#FAF7F2] bg-titulo/70 px-3 py-1 rounded-full">
+                Escolha um aroma
+              </p>
+            )}
+            <button
+              onClick={handleAdd}
+              disabled={product.estoque === 0}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-[13px] font-medium tracking-wide ${
+                added
+                  ? 'bg-[#FAF7F2] text-green-700'
+                  : product.estoque === 0
+                  ? 'bg-[#FAF7F2]/70 text-subtexto cursor-not-allowed'
+                  : 'bg-[#FAF7F2]/90 text-titulo hover:bg-[#FAF7F2]'
+              } transition-colors duration-200`}
+            >
+              {added ? (
+                <><Check size={13} /> Adicionado</>
+              ) : product.estoque === 0 ? (
+                'Esgotado'
+              ) : (
+                <><ShoppingBag size={13} /> Adicionar</>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Badges */}

@@ -86,7 +86,7 @@ export default function Cart() {
               ) : (
                 items.map((item) => (
                   <motion.div
-                    key={item.product.id}
+                    key={item.id}
                     layout
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -108,9 +108,11 @@ export default function Cart() {
                       <p className="font-serif text-sm font-medium text-titulo leading-snug line-clamp-1">
                         {item.product.nome}
                       </p>
-                      <p className="text-[11px] text-subtexto uppercase tracking-wider mt-0.5 truncate">
-                        {item.product.aroma}
-                      </p>
+                      {item.aroma && (
+                        <p className="text-[11px] text-subtexto uppercase tracking-wider mt-0.5 truncate">
+                          {item.aroma}
+                        </p>
+                      )}
                       <p className="price text-sm mt-1">
                         R$ {(item.product.preco * item.quantidade).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                       </p>
@@ -119,7 +121,7 @@ export default function Cart() {
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => updateQuantity(item.product.id, item.quantidade - 1)}
+                            onClick={() => updateQuantity(item.id, item.quantidade - 1)}
                             className="w-6 h-6 rounded-full border border-[#D4C4B0] flex items-center justify-center hover:border-rosa hover:text-rosa transition-colors duration-200"
                           >
                             <Minus size={11} />
@@ -128,14 +130,14 @@ export default function Cart() {
                             {item.quantidade}
                           </span>
                           <button
-                            onClick={() => updateQuantity(item.product.id, item.quantidade + 1)}
+                            onClick={() => updateQuantity(item.id, item.quantidade + 1)}
                             className="w-6 h-6 rounded-full border border-[#D4C4B0] flex items-center justify-center hover:border-rosa hover:text-rosa transition-colors duration-200"
                           >
                             <Plus size={11} />
                           </button>
                         </div>
                         <button
-                          onClick={() => removeItem(item.product.id)}
+                          onClick={() => removeItem(item.id)}
                           className="p-1 text-subtexto hover:text-red-400 transition-colors duration-200"
                           aria-label="Remover"
                         >

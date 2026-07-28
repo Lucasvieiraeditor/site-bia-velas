@@ -7,37 +7,41 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: Product }
+  | { type: 'ADD_ITEM'; payload: { product: Product; aroma: string } }
   | { type: 'REMOVE_ITEM'; payload: string }
   | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantidade: number } }
   | { type: 'CLEAR_CART' }
 
+function cartItemId(productId: string, aroma: string) {
+  return `${productId}::${aroma}`
+}
+
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const existing = state.items.find((i) => i.product.id === action.payload.id)
+      const { product, aroma } = action.payload
+      const id = cartItemId(product.id, aroma)
+      const existing = state.items.find((i) => i.id === id)
       if (existing) {
         return {
           ...state,
           items: state.items.map((i) =>
-            i.product.id === action.payload.id
-              ? { ...i, quantidade: i.quantidade + 1 }
-              : i,
+            i.id === id ? { ...i, quantidade: i.quantidade + 1 } : i,
           ),
         }
       }
-      return { ...state, items: [...state.items, { product: action.payload, quantidade: 1 }] }
+      return { ...state, items: [...state.items, { id, product, aroma, quantidade: 1 }] }
     }
     case 'REMOVE_ITEM':
-      return { ...state, items: state.items.filter((i) => i.product.id !== action.payload) }
+      return { ...state, items: state.items.filter((i) => i.id !== action.payload) }
     case 'UPDATE_QUANTITY': {
       if (action.payload.quantidade <= 0) {
-        return { ...state, items: state.items.filter((i) => i.product.id !== action.payload.id) }
+        return { ...state, items: state.items.filter((i) => i.id !== action.payload.id) }
       }
       return {
         ...state,
         items: state.items.map((i) =>
-          i.product.id === action.payload.id
+          i.id === action.payload.id
             ? { ...i, quantidade: action.payload.quantidade }
             : i,
         ),
@@ -55,7 +59,7 @@ interface CartContextValue {
   isOpen: boolean
   totalItems: number
   totalPrice: number
-  addItem: (product: Product) => void
+  addItem: (product: Product, aroma?: string) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantidade: number) => void
   clearCart: () => void
@@ -73,8 +77,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const totalItems = state.items.reduce((acc, i) => acc + i.quantidade, 0)
   const totalPrice = state.items.reduce((acc, i) => acc + i.product.preco * i.quantidade, 0)
 
-  const addItem = (product: Product) => {
-    dispatch({ type: 'ADD_ITEM', payload: product })
+  const addItem = (product: Product, aroma = '') => {
+    dispatch({ type: 'ADD_ITEM', payload: { product, aroma } })
     setIsOpen(true)
   }
 

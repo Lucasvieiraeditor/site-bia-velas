@@ -193,7 +193,7 @@ export default function Checkout() {
       const orderItems = items.map((i) => ({
         produto_id: i.product.id,
         nome: i.product.nome,
-        aroma: i.product.aroma,
+        aroma: i.aroma,
         preco: i.product.preco,
         quantidade: i.quantidade,
         imagem_url: i.product.imagem_url,
@@ -554,7 +554,7 @@ export default function Checkout() {
 
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.product.id} className="flex gap-3">
+                  <div key={item.id} className="flex gap-3">
                     <div className="w-14 h-14 rounded-xl overflow-hidden bg-rosa-claro shrink-0">
                       <img
                         src={item.product.imagem_url}
@@ -566,13 +566,15 @@ export default function Checkout() {
                       <p className="font-medium text-titulo text-sm leading-snug line-clamp-1">
                         {item.product.nome}
                       </p>
-                      <p className="text-[11px] text-subtexto uppercase tracking-wider">
-                        {item.product.aroma}
-                      </p>
+                      {item.aroma && (
+                        <p className="text-[11px] text-subtexto uppercase tracking-wider">
+                          {item.aroma}
+                        </p>
+                      )}
                       <div className="flex items-center gap-2 mt-1.5">
                         <button
                           type="button"
-                          onClick={() => updateQuantity(item.product.id, item.quantidade - 1)}
+                          onClick={() => updateQuantity(item.id, item.quantidade - 1)}
                           className="w-5 h-5 rounded-full border border-[#D4C4B0] flex items-center justify-center hover:border-rosa text-subtexto"
                         >
                           <Minus size={10} />
@@ -580,7 +582,7 @@ export default function Checkout() {
                         <span className="text-xs font-medium text-titulo">{item.quantidade}</span>
                         <button
                           type="button"
-                          onClick={() => updateQuantity(item.product.id, item.quantidade + 1)}
+                          onClick={() => updateQuantity(item.id, item.quantidade + 1)}
                           className="w-5 h-5 rounded-full border border-[#D4C4B0] flex items-center justify-center hover:border-rosa text-subtexto"
                         >
                           <Plus size={10} />
@@ -590,7 +592,7 @@ export default function Checkout() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => removeItem(item.product.id)}
+                          onClick={() => removeItem(item.id)}
                           className="text-subtexto hover:text-red-400 transition-colors"
                         >
                           <Trash2 size={12} />
