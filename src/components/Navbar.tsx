@@ -9,7 +9,7 @@ import { SUBCATEGORIAS_COLECAO } from '../lib/subcategorias'
 const otherMobileLinks = [
   { to: '/produtos?categoria=Lembrancinhas', label: 'Lembrancinhas personalizadas para seu evento' },
   { to: '/produtos?categoria=Kit', label: 'Kits completos' },
-  { to: '/produtos?categoria=Presente', label: 'Para presentear' },
+  { to: '/produtos?categoria=Presente', label: 'Presentes corporativos' },
 ]
 
 export default function Navbar() {
