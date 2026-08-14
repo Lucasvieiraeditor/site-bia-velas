@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ShieldCheck, CreditCard, Loader2, Minus, Plus, Trash2, Truck, Tag, X as XIcon } from 'lucide-react'
@@ -87,6 +87,10 @@ export default function Checkout() {
   const [shippingError, setShippingError] = useState<string | null>(null)
   const [calculatingShipping, setCalculatingShipping] = useState(false)
   const [shippingValidationError, setShippingValidationError] = useState<string | null>(null)
+
+  // Trava contra clique duplicado — não depende do re-render do React,
+  // por isso funciona mesmo se o segundo toque chegar antes do botão desabilitar.
+  const submittingRef = useRef(false)
 
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null)
@@ -243,7 +247,9 @@ export default function Checkout() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (submittingRef.current) return
     if (!validate()) return
+    submittingRef.current = true
     setLoading(true)
 
     try {
@@ -344,12 +350,16 @@ export default function Checkout() {
       })
       const mpData = await mpRes.json()
       if (!mpRes.ok) throw new Error(mpData.message ?? 'Erro ao criar preferência de pagamento.')
+      if (!mpData.init_point) throw new Error('Erro ao criar preferência de pagamento.')
       clearCart()
       window.location.href = mpData.init_point
+      // Sucesso: não destrava o botão nem reseta o loading — a página já está
+      // saindo pro Mercado Pago, e reativar o botão nesse meio-tempo só abriria
+      // margem pra um segundo clique disparar tudo de novo.
     } catch (err) {
       console.error('Erro ao processar pedido:', err)
       alert('Não foi possível processar seu pedido. Tente novamente.')
-    } finally {
+      submittingRef.current = false
       setLoading(false)
     }
   }
@@ -380,7 +390,7 @@ export default function Checkout() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <form onSubmit={handleSubmit} noValidate className="space-y-8">
+            <form id="checkout-form" onSubmit={handleSubmit} noValidate className="space-y-8">
               {/* Contact */}
               <div className="bg-[#FAF7F2] rounded-2xl p-6 shadow-soft space-y-5">
                 <h2 className="font-serif text-xl font-medium text-titulo">Seus dados</h2>
@@ -767,7 +777,6 @@ export default function Checkout() {
               <button
                 type="submit"
                 form="checkout-form"
-                onClick={handleSubmit as unknown as React.MouseEventHandler}
                 disabled={loading}
                 className="btn-primary w-full justify-center py-4 text-base gap-3 disabled:opacity-60 disabled:cursor-not-allowed"
               >
