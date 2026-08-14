@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Product, Order } from '../types'
+import type { Product, Order, Coupon } from '../types'
 
 const SUPABASE_URL = 'https://vnmqdyzjbtouanivsadf.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_mzYk0z87Jsv4TW7gz1i6rA_1wYByL0h'
@@ -86,6 +86,37 @@ export async function createOrder(
   return data as Order
 }
 
+export async function updateOrder(
+  id: string,
+  updates: Partial<Omit<Order, 'id' | 'created_at'>>,
+): Promise<Order> {
+  const { data, error } = await supabase
+    .from('pedidos_bia')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data as Order
+}
+
+// Evita duplicar pedido quando o cliente abandona o checkout e volta pra pagar de novo:
+// procura um pedido "aguardando" recente (últimas 24h) com o mesmo e-mail pra reaproveitar.
+export async function findRecentPendingOrder(email: string): Promise<Order | null> {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { data, error } = await supabase
+    .from('pedidos_bia')
+    .select('*')
+    .ilike('cliente_email', email.trim())
+    .eq('status', 'aguardando')
+    .gte('created_at', since)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  return data as Order | null
+}
+
 export async function fetchOrders(): Promise<Order[]> {
   const { data, error } = await supabase
     .from('pedidos_bia')
@@ -117,6 +148,59 @@ export async function updateOrderStatus(
 
 export async function deleteOrder(id: string): Promise<void> {
   const { error } = await supabase.from('pedidos_bia').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ── Cupons ──────────────────────────────────────────────────────────────────
+
+export async function fetchCoupons(): Promise<Coupon[]> {
+  const { data, error } = await supabase
+    .from('cupons_bia')
+    .select('*')
+    .order('created_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as Coupon[]
+}
+
+export async function fetchActiveCouponByCode(codigo: string): Promise<Coupon | null> {
+  const { data, error } = await supabase
+    .from('cupons_bia')
+    .select('*')
+    .eq('codigo', codigo.trim().toUpperCase())
+    .eq('ativo', true)
+    .maybeSingle()
+  if (error) throw error
+  return data as Coupon | null
+}
+
+export async function createCoupon(
+  coupon: Omit<Coupon, 'id' | 'created_at'>,
+): Promise<Coupon> {
+  const { data, error } = await supabase
+    .from('cupons_bia')
+    .insert({ ...coupon, codigo: coupon.codigo.trim().toUpperCase() })
+    .select()
+    .single()
+  if (error) throw error
+  return data as Coupon
+}
+
+export async function updateCoupon(
+  id: string,
+  updates: Partial<Omit<Coupon, 'id' | 'created_at'>>,
+): Promise<Coupon> {
+  const { data, error } = await supabase
+    .from('cupons_bia')
+    .update(updates.codigo ? { ...updates, codigo: updates.codigo.trim().toUpperCase() } : updates)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data as Coupon
+}
+
+export async function deleteCoupon(id: string): Promise<void> {
+  const { error } = await supabase.from('cupons_bia').delete().eq('id', id)
   if (error) throw error
 }
 

@@ -1,12 +1,26 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom'
+import { Loader2 } from 'lucide-react'
 import { CartProvider } from './context/CartContext'
 import Navbar from './components/Navbar'
 import Cart from './components/Cart'
 import Home from './pages/Home'
 import Products from './pages/Products'
+import ProductDetail from './pages/ProductDetail'
 import Checkout from './pages/Checkout'
 import Confirmation from './pages/Confirmation'
-import Admin from './pages/Admin'
+
+// Painel adm é usado só pela Bia, não pelos clientes — carrega sob demanda
+// pra não engordar o pacote que todo visitante do site baixa.
+const Admin = lazy(() => import('./pages/Admin'))
+
+function AdminFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-offwhite">
+      <Loader2 size={28} className="animate-spin text-rosa" />
+    </div>
+  )
+}
 
 function PublicLayout() {
   return (
@@ -38,10 +52,18 @@ export default function App() {
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/produtos" element={<Products />} />
+            <Route path="/produtos/:id" element={<ProductDetail />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/confirmacao" element={<Confirmation />} />
           </Route>
-          <Route path="/admin" element={<Admin />} />
+          <Route
+            path="/admin"
+            element={
+              <Suspense fallback={<AdminFallback />}>
+                <Admin />
+              </Suspense>
+            }
+          />
         </Routes>
       </CartProvider>
     </BrowserRouter>

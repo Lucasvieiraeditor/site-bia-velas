@@ -1,8 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ShoppingBag, Check } from 'lucide-react'
-import { useCart } from '../context/CartContext'
-import { parseAromas } from '../lib/aromas'
+import { useAromaSelector } from '../hooks/useAromaSelector'
 import type { Product } from '../types'
 
 interface ProductCardProps {
@@ -11,38 +11,23 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
-  const { addItem } = useCart()
-  const [added, setAdded] = useState(false)
+  const navigate = useNavigate()
   const [imgError, setImgError] = useState(false)
+  const { aromas, selectedAroma, pickAroma, showAromaWarning, handleAdd, added } = useAromaSelector(product)
 
-  const aromas = parseAromas(product.aroma)
-  const [selectedAroma, setSelectedAroma] = useState(aromas.length === 1 ? aromas[0] : '')
-  const [showAromaWarning, setShowAromaWarning] = useState(false)
-
-  const handleAdd = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (aromas.length > 1 && !selectedAroma) {
-      setShowAromaWarning(true)
-      setTimeout(() => setShowAromaWarning(false), 2500)
-      return
-    }
-    addItem(product, selectedAroma)
-    setAdded(true)
-    setTimeout(() => setAdded(false), 2000)
-  }
-
-  const handlePickAroma = (e: React.MouseEvent, aroma: string) => {
-    e.stopPropagation()
-    setSelectedAroma(aroma)
-    setShowAromaWarning(false)
-  }
+  const goToDetail = () => navigate(`/produtos/${product.id}`)
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.65, delay, ease: [0.25, 0.1, 0.25, 1] }}
-      className="flex flex-col group"
+      onClick={goToDetail}
+      onKeyDown={(e) => { if (e.key === 'Enter') goToDetail() }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Ver detalhes de ${product.nome}`}
+      className="flex flex-col group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-rosa focus-visible:ring-offset-2 rounded-lg"
     >
       {/* Portrait image */}
       <div className="relative aspect-[3/4] overflow-hidden bg-rosa-claro">
@@ -69,7 +54,7 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
                   <button
                     key={aroma}
                     type="button"
-                    onClick={(e) => handlePickAroma(e, aroma)}
+                    onClick={(e) => { e.stopPropagation(); pickAroma(aroma) }}
                     className={`px-3 py-1 rounded-full text-[11px] font-medium transition-colors duration-200 ${
                       selectedAroma === aroma
                         ? 'bg-rosa text-white'
@@ -87,7 +72,7 @@ export default function ProductCard({ product, delay = 0 }: ProductCardProps) {
               </p>
             )}
             <button
-              onClick={handleAdd}
+              onClick={(e) => { e.stopPropagation(); handleAdd() }}
               disabled={product.estoque === 0}
               className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-[13px] font-medium tracking-wide ${
                 added

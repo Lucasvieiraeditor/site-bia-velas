@@ -52,6 +52,17 @@ export interface Order {
   frete_nome?: string
   frete_prazo?: number
   frete_valor?: number
+  cupom_codigo?: string
+  desconto_valor?: number
+}
+
+export interface Coupon {
+  id: string
+  created_at: string
+  codigo: string
+  tipo: 'percentual' | 'fixo'
+  valor: number
+  ativo: boolean
 }
 
 export type OrderStatus = Order['status']

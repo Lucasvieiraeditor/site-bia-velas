@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ShieldCheck, CreditCard, Loader2, Minus, Plus, Trash2, Truck } from 'lucide-react'
+import { ArrowLeft, ShieldCheck, CreditCard, Loader2, Minus, Plus, Trash2, Truck, Tag, X as XIcon } from 'lucide-react'
 import { useCart } from '../context/CartContext'
-import { createOrder, isSupabaseConfigured } from '../lib/supabase'
-import type { Order } from '../types'
-
-const MP_ACCESS_TOKEN = 'APP_USR-2258868822720925-050116-cc5053beb86ff19f470e519b05e13c47-203809776'
+import { createOrder, updateOrder, findRecentPendingOrder, fetchActiveCouponByCode, isSupabaseConfigured } from '../lib/supabase'
+import type { Order, Coupon } from '../types'
 
 interface ShippingOption {
   id: number
@@ -55,6 +53,28 @@ function formatCEP(v: string) {
   return `${d.slice(0, 5)}-${d.slice(5)}`
 }
 
+// Reduz o preço das linhas proporcionalmente até a soma bater com (subtotal - desconto),
+// sem nunca mandar valor negativo pro Mercado Pago.
+function applyDiscountProportionally(
+  lines: { unit_price: number; quantity: number }[],
+  discount: number,
+): number[] {
+  const subtotal = lines.reduce((s, l) => s + l.unit_price * l.quantity, 0)
+  if (discount <= 0 || subtotal <= 0 || lines.length === 0) {
+    return lines.map((l) => l.unit_price)
+  }
+  const ratio = Math.max(0, (subtotal - discount) / subtotal)
+  const adjusted = lines.map((l) => Math.round(l.unit_price * ratio * 100) / 100)
+  const adjustedTotal = adjusted.reduce((s, p, i) => s + p * lines[i].quantity, 0)
+  const target = Math.round((subtotal - discount) * 100) / 100
+  const diff = Math.round((target - adjustedTotal) * 100) / 100
+  if (diff !== 0) {
+    const lastIdx = adjusted.length - 1
+    adjusted[lastIdx] = Math.round((adjusted[lastIdx] + diff / lines[lastIdx].quantity) * 100) / 100
+  }
+  return adjusted.map((p) => Math.max(0, p))
+}
+
 export default function Checkout() {
   const { items, totalPrice, clearCart, updateQuantity, removeItem } = useCart()
   const [form, setForm] = useState<FormData>(emptyForm)
@@ -68,9 +88,20 @@ export default function Checkout() {
   const [calculatingShipping, setCalculatingShipping] = useState(false)
   const [shippingValidationError, setShippingValidationError] = useState<string | null>(null)
 
+  const [couponCode, setCouponCode] = useState('')
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null)
+  const [couponError, setCouponError] = useState<string | null>(null)
+  const [applyingCoupon, setApplyingCoupon] = useState(false)
+
   const cepRaw = form.cep.replace(/\D/g, '')
   const canCalculateShipping = cepRaw.length === 8
-  const finalTotal = totalPrice + (selectedShipping?.price ?? 0)
+  const discountValue = appliedCoupon
+    ? Math.min(
+        appliedCoupon.tipo === 'percentual' ? totalPrice * (appliedCoupon.valor / 100) : appliedCoupon.valor,
+        totalPrice,
+      )
+    : 0
+  const finalTotal = totalPrice + (selectedShipping?.price ?? 0) - discountValue
 
   if (items.length === 0) {
     return (
@@ -166,6 +197,32 @@ export default function Checkout() {
     }
   }
 
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim() || !isSupabaseConfigured) return
+    setApplyingCoupon(true)
+    setCouponError(null)
+    try {
+      const coupon = await fetchActiveCouponByCode(couponCode)
+      if (!coupon) {
+        setAppliedCoupon(null)
+        setCouponError('Cupom inválido ou expirado.')
+        return
+      }
+      setAppliedCoupon(coupon)
+    } catch {
+      setAppliedCoupon(null)
+      setCouponError('Não foi possível aplicar o cupom. Tente novamente.')
+    } finally {
+      setApplyingCoupon(false)
+    }
+  }
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null)
+    setCouponCode('')
+    setCouponError(null)
+  }
+
   const validate = (): boolean => {
     const required: Array<keyof FormData> = ['nome', 'email', 'telefone', 'cep', 'rua', 'numero', 'bairro', 'cidade', 'estado']
     const newErrors: Partial<FormData> = {}
@@ -220,37 +277,52 @@ export default function Checkout() {
           frete_prazo: selectedShipping.delivery_time,
           frete_valor: selectedShipping.price,
         }),
+        ...(appliedCoupon && {
+          cupom_codigo: appliedCoupon.codigo,
+          desconto_valor: discountValue,
+        }),
       }
 
       let orderId = `local-${Date.now()}`
       if (isSupabaseConfigured) {
-        const order = await createOrder(orderPayload)
-        orderId = order.id
+        const pending = await findRecentPendingOrder(form.email)
+        if (pending) {
+          const order = await updateOrder(pending.id, orderPayload)
+          orderId = order.id
+        } else {
+          const order = await createOrder(orderPayload)
+          orderId = order.id
+        }
       }
 
       // ─── MercadoPago: cria preferência de pagamento ──────────────────
+      const mpLines = [
+        ...orderItems.map((i) => ({ unit_price: i.preco, quantity: i.quantidade })),
+        ...(selectedShipping ? [{ unit_price: selectedShipping.price, quantity: 1 }] : []),
+      ]
+      const mpPrices = applyDiscountProportionally(mpLines, discountValue)
+
       const mpItems = [
-        ...orderItems.map((i) => ({
+        ...orderItems.map((i, idx) => ({
           title: i.nome,
           description: i.aroma || '',
-          unit_price: i.preco,
+          unit_price: mpPrices[idx],
           quantity: i.quantidade,
           currency_id: 'BRL',
         })),
         ...(selectedShipping ? [{
           title: `Frete — ${selectedShipping.name}`,
           description: `Correios · até ${selectedShipping.delivery_time} dias úteis`,
-          unit_price: selectedShipping.price,
+          unit_price: mpPrices[orderItems.length],
           quantity: 1,
           currency_id: 'BRL',
         }] : []),
       ]
 
-      const mpRes = await fetch('https://api.mercadopago.com/checkout/preferences', {
+      const mpRes = await fetch('/.netlify/functions/create-mp-preference', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${MP_ACCESS_TOKEN}`,
         },
         body: JSON.stringify({
           external_reference: orderId,
@@ -266,6 +338,7 @@ export default function Checkout() {
             failure: 'https://bybiaggi.com.br/carrinho',
             pending: `https://bybiaggi.com.br/confirmacao?pedido=${orderId}`,
           },
+          notification_url: 'https://bybiaggi.com.br/.netlify/functions/mp-webhook',
           auto_return: 'approved',
         }),
       })
@@ -603,11 +676,57 @@ export default function Checkout() {
                 ))}
               </div>
 
-              <div className="mt-6 pt-4 border-t border-[#D9CBB8] space-y-2">
+              <div className="mt-6 pt-4 border-t border-[#D9CBB8]">
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between gap-2 text-sm bg-[#E8F5EE] text-[#3D8B5E] rounded-xl px-3 py-2.5">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Tag size={13} />
+                      {appliedCoupon.codigo}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleRemoveCoupon}
+                      className="text-[#3D8B5E] hover:text-red-500 transition-colors"
+                      aria-label="Remover cupom"
+                    >
+                      <XIcon size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={couponCode}
+                        onChange={(e) => { setCouponCode(e.target.value); setCouponError(null) }}
+                        placeholder="Cupom de desconto"
+                        className="input-field flex-1 uppercase"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyCoupon}
+                        disabled={!couponCode.trim() || applyingCoupon}
+                        className="btn-secondary px-4 disabled:opacity-60"
+                      >
+                        {applyingCoupon ? <Loader2 size={15} className="animate-spin" /> : 'Aplicar'}
+                      </button>
+                    </div>
+                    {couponError && <p className="text-red-400 text-xs mt-1.5">{couponError}</p>}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4 pt-4 border-t border-[#D9CBB8] space-y-2">
                 <div className="flex justify-between text-sm text-subtexto">
                   <span>Subtotal</span>
                   <span>R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
+                {appliedCoupon && (
+                  <div className="flex justify-between text-sm text-[#3D8B5E]">
+                    <span>Desconto</span>
+                    <span>− R$ {discountValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-subtexto">Frete</span>
                   <span className="text-titulo">

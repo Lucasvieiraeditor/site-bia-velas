@@ -4,18 +4,19 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Package, ShoppingBag, TrendingUp, Plus, Edit2, Trash2,
   Eye, EyeOff, X, Check, Loader2, Search, ChevronDown, UploadCloud,
-  AlertCircle, Truck
+  AlertCircle, Truck, Tag
 } from 'lucide-react'
 import {
   supabase, signIn, signOut, getSession,
   fetchAllProducts, fetchOrders,
   createProduct, updateProduct, deleteProduct, updateOrderStatus, deleteOrder,
+  fetchCoupons, createCoupon, updateCoupon, deleteCoupon,
   uploadProductImage, isSupabaseConfigured,
 } from '../lib/supabase'
 import { mockProducts } from '../data/products'
 import { parseAromas } from '../lib/aromas'
 import { SUBCATEGORIAS_COLECAO } from '../lib/subcategorias'
-import type { Product, Order, OrderStatus, ProductCategory } from '../types'
+import type { Product, Order, OrderStatus, ProductCategory, Coupon } from '../types'
 
 // ── Auth Gate ─────────────────────────────────────────────────────────────────
 
@@ -574,6 +575,12 @@ function OrderDetailModal({
                 <span className="text-titulo font-medium">R$ {(order.frete_valor ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
               </div>
             )}
+            {order.cupom_codigo && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-subtexto">Cupom · {order.cupom_codigo}</span>
+                <span className="text-titulo font-medium">− R$ {(order.desconto_valor ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+              </div>
+            )}
             <div className="flex items-center justify-between pt-2 border-t border-[#D9CBB8]">
               <span className="text-sm font-medium text-titulo">Total</span>
               <span className="font-serif text-xl font-medium text-dourado">
@@ -661,14 +668,134 @@ function DeleteOrderModal({
   )
 }
 
+// ── Coupon Form Modal ────────────────────────────────────────────────────────
+
+interface CouponFormProps {
+  initial?: Coupon
+  onSave: (coupon: Omit<Coupon, 'id' | 'created_at'>) => Promise<void>
+  onClose: () => void
+}
+
+function CouponForm({ initial, onSave, onClose }: CouponFormProps) {
+  const [codigo, setCodigo] = useState(initial?.codigo ?? '')
+  const [tipo, setTipo] = useState<Coupon['tipo']>(initial?.tipo ?? 'percentual')
+  const [valor, setValor] = useState(initial?.valor?.toString() ?? '')
+  const [ativo, setAtivo] = useState(initial?.ativo ?? true)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!codigo.trim() || !valor) { setError('Preencha o código e o valor do desconto.'); return }
+    setLoading(true)
+    setError('')
+    try {
+      await onSave({ codigo: codigo.trim(), tipo, valor: parseFloat(valor), ativo })
+      onClose()
+    } catch (err) {
+      console.error('[Admin] Erro ao salvar cupom:', err)
+      setError('Erro ao salvar cupom. O código pode já estar em uso.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-titulo/40 backdrop-blur-[2px] flex items-center justify-center p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ type: 'spring', damping: 20, stiffness: 260 }}
+        className="bg-[#FAF7F2] rounded-2xl shadow-soft-lg w-full max-w-sm max-h-[90vh] overflow-y-auto"
+      >
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[#D9CBB8]">
+          <h2 className="font-serif text-lg font-medium text-titulo">
+            {initial ? 'Editar cupom' : 'Novo cupom'}
+          </h2>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-rosa-claro text-subtexto transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div>
+            <label className="label">Código *</label>
+            <input
+              type="text"
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value)}
+              placeholder="BIA10"
+              className="input-field uppercase"
+              required
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Tipo *</label>
+              <select value={tipo} onChange={(e) => setTipo(e.target.value as Coupon['tipo'])} className="input-field">
+                <option value="percentual">Porcentagem (%)</option>
+                <option value="fixo">Valor fixo (R$)</option>
+              </select>
+            </div>
+            <div>
+              <label className="label">Valor *</label>
+              <input
+                type="number"
+                value={valor}
+                onChange={(e) => setValor(e.target.value)}
+                placeholder={tipo === 'percentual' ? '10' : '15.00'}
+                step="0.01"
+                min="0"
+                className="input-field"
+                required
+              />
+            </div>
+          </div>
+
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" checked={ativo} onChange={(e) => setAtivo(e.target.checked)} className="w-4 h-4 accent-rosa rounded" />
+            <span className="text-sm text-titulo">Cupom ativo (disponível no checkout)</span>
+          </label>
+
+          {error && (
+            <div className="flex items-center gap-2 text-red-500 text-xs bg-red-50 rounded-lg px-3 py-2">
+              <AlertCircle size={13} />
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="btn-secondary flex-1 justify-center py-3">
+              Cancelar
+            </button>
+            <button type="submit" disabled={loading} className="btn-primary flex-1 justify-center py-3 disabled:opacity-60">
+              {loading ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+              {loading ? 'Salvando…' : 'Salvar'}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
+  )
+}
+
 // ── Main Admin Dashboard ───────────────────────────────────────────────────────
 
-type Tab = 'dashboard' | 'produtos' | 'pedidos'
+type Tab = 'dashboard' | 'produtos' | 'pedidos' | 'cupons'
 
 function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
   const [tab, setTab] = useState<Tab>('dashboard')
   const [products, setProducts] = useState<Product[]>([])
   const [orders, setOrders] = useState<Order[]>([])
+  const [coupons, setCoupons] = useState<Coupon[]>([])
   const [loadingData, setLoadingData] = useState(true)
   const [productSearch, setProductSearch] = useState('')
   const [orderFilter, setOrderFilter] = useState<OrderStatus | 'todos'>('todos')
@@ -678,6 +805,9 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [orderToDelete, setOrderToDelete] = useState<Order | null>(null)
   const [deletingOrderLoading, setDeletingOrderLoading] = useState(false)
+  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null)
+  const [newCoupon, setNewCoupon] = useState(false)
+  const [deletingCouponId, setDeletingCouponId] = useState<string | null>(null)
   const [loadError, setLoadError] = useState('')
 
   const load = useCallback(async () => {
@@ -685,9 +815,10 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
     setLoadError('')
     try {
       if (isSupabaseConfigured) {
-        const [prods, ords] = await Promise.all([fetchAllProducts(), fetchOrders()])
+        const [prods, ords, cpns] = await Promise.all([fetchAllProducts(), fetchOrders(), fetchCoupons()])
         setProducts(prods)
         setOrders(ords)
+        setCoupons(cpns)
       } else {
         await new Promise((r) => setTimeout(r, 400))
         setProducts(mockProducts)
@@ -726,6 +857,7 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
             status: 'aguardando',
           },
         ] as Order[])
+        setCoupons([])
       }
     } catch (e) {
       console.error('Erro ao carregar dados:', e)
@@ -852,6 +984,54 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
     }
   }
 
+  const handleToggleCouponActive = async (coupon: Coupon) => {
+    try {
+      const updated = { ...coupon, ativo: !coupon.ativo }
+      if (isSupabaseConfigured) {
+        await updateCoupon(coupon.id, { ativo: !coupon.ativo })
+      }
+      setCoupons((prev) => prev.map((c) => (c.id === coupon.id ? updated : c)))
+    } catch {
+      alert('Erro ao atualizar cupom.')
+    }
+  }
+
+  const handleSaveCoupon = async (data: Omit<Coupon, 'id' | 'created_at'>) => {
+    if (editingCoupon) {
+      if (isSupabaseConfigured) {
+        const updated = await updateCoupon(editingCoupon.id, data)
+        setCoupons((prev) => prev.map((c) => (c.id === editingCoupon.id ? updated : c)))
+      } else {
+        setCoupons((prev) => prev.map((c) => c.id === editingCoupon.id ? { ...c, ...data } : c))
+      }
+    } else {
+      if (isSupabaseConfigured) {
+        const created = await createCoupon(data)
+        setCoupons((prev) => [created, ...prev])
+      } else {
+        const newCoup = { ...data, id: `local-${Date.now()}`, created_at: new Date().toISOString() }
+        setCoupons((prev) => [newCoup, ...prev])
+      }
+    }
+  }
+
+  const handleDeleteCoupon = async (id: string) => {
+    if (!window.confirm('Remover este cupom?')) return
+    setDeletingCouponId(id)
+    try {
+      if (isSupabaseConfigured) {
+        await deleteCoupon(id)
+      }
+      setCoupons((prev) => prev.filter((c) => c.id !== id))
+    } catch {
+      alert('Erro ao remover cupom.')
+    } finally {
+      setDeletingCouponId(null)
+    }
+  }
+
+  const couponUsage = (codigo: string) => orders.filter((o) => o.cupom_codigo === codigo).length
+
   const filteredProducts = products.filter((p) =>
     p.nome.toLowerCase().includes(productSearch.toLowerCase()) ||
     p.aroma.toLowerCase().includes(productSearch.toLowerCase()),
@@ -894,7 +1074,7 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
       <div className="max-w-6xl mx-auto px-5 md:px-8 py-8">
         {/* Tabs */}
         <div className="flex gap-2 mb-8 border-b border-[#D9CBB8]">
-          {([['dashboard', 'Dashboard'], ['produtos', 'Produtos'], ['pedidos', 'Pedidos']] as [Tab, string][]).map(([t, label]) => (
+          {([['dashboard', 'Dashboard'], ['produtos', 'Produtos'], ['pedidos', 'Pedidos'], ['cupons', 'Cupons']] as [Tab, string][]).map(([t, label]) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -1211,6 +1391,12 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
                           <span>Frete · {order.frete_nome} · até {order.frete_prazo} dias úteis · R$ {(order.frete_valor ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                         </div>
                       )}
+                      {order.cupom_codigo && (
+                        <div className="mt-2 flex items-center gap-2 text-xs text-subtexto">
+                          <Tag size={12} className="shrink-0" />
+                          <span>Cupom · {order.cupom_codigo} · − R$ {(order.desconto_valor ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      )}
 
                       {/* Status update */}
                       <div className="mt-4 flex items-center gap-2">
@@ -1236,6 +1422,95 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
                       <p>Nenhum pedido encontrado.</p>
                     </div>
                   )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── CUPONS ── */}
+            {tab === 'cupons' && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                  <h1 className="font-serif text-2xl font-medium text-titulo">Cupons</h1>
+                  <button onClick={() => setNewCoupon(true)} className="btn-primary text-sm">
+                    <Plus size={15} />
+                    Novo cupom
+                  </button>
+                </div>
+
+                <div className="bg-[#FAF7F2] rounded-2xl shadow-soft overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-offwhite border-b border-[#D9CBB8]">
+                        <tr>
+                          {['Código', 'Desconto', 'Pedidos', 'Status', 'Ações'].map((h) => (
+                            <th key={h} className="text-left text-xs font-medium text-subtexto uppercase tracking-wider px-5 py-3.5">
+                              {h}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#D9CBB8]">
+                        {coupons.map((coupon) => (
+                          <tr key={coupon.id} className="hover:bg-offwhite/60 transition-colors">
+                            <td className="px-5 py-4">
+                              <div className="flex items-center gap-2">
+                                <Tag size={14} className="text-rosa shrink-0" />
+                                <span className="text-sm font-medium text-titulo font-mono">{coupon.codigo}</span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-4 text-sm text-subtexto">
+                              {coupon.tipo === 'percentual' ? `${coupon.valor}%` : `R$ ${coupon.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                            </td>
+                            <td className="px-5 py-4 text-sm font-medium text-titulo">
+                              {couponUsage(coupon.codigo)}
+                            </td>
+                            <td className="px-5 py-4">
+                              <button
+                                onClick={() => handleToggleCouponActive(coupon)}
+                                className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
+                                  coupon.ativo
+                                    ? 'bg-[#E8F5EE] text-[#3D8B5E] hover:bg-[#d2ede0]'
+                                    : 'bg-[#F5F5F5] text-subtexto hover:bg-[#ebebeb]'
+                                }`}
+                              >
+                                {coupon.ativo ? 'Ativo' : 'Inativo'}
+                              </button>
+                            </td>
+                            <td className="px-5 py-4">
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => setEditingCoupon(coupon)}
+                                  className="p-1.5 rounded-lg hover:bg-rosa-claro text-subtexto hover:text-rosa transition-colors"
+                                  title="Editar"
+                                >
+                                  <Edit2 size={14} />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteCoupon(coupon.id)}
+                                  disabled={deletingCouponId === coupon.id}
+                                  className="p-1.5 rounded-lg hover:bg-red-50 text-subtexto hover:text-red-500 transition-colors disabled:opacity-40"
+                                  title="Remover"
+                                >
+                                  {deletingCouponId === coupon.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        {coupons.length === 0 && (
+                          <tr>
+                            <td colSpan={5} className="text-center text-subtexto text-sm py-10">
+                              Nenhum cupom cadastrado.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -1272,6 +1547,15 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
             loading={deletingOrderLoading}
             onClose={() => setOrderToDelete(null)}
             onConfirm={handleDeleteOrder}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {(newCoupon || editingCoupon) && (
+          <CouponForm
+            initial={editingCoupon ?? undefined}
+            onSave={handleSaveCoupon}
+            onClose={() => { setNewCoupon(false); setEditingCoupon(null) }}
           />
         )}
       </AnimatePresence>
