@@ -3,9 +3,10 @@ import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ShoppingBag, Menu, X } from 'lucide-react'
 import { useCart } from '../context/CartContext'
+import PlusMinusIcon from './PlusMinusIcon'
+import { SUBCATEGORIAS_COLECAO } from '../lib/subcategorias'
 
-const mobileLinks = [
-  { to: '/produtos?categoria=Coleção', label: 'Coleção' },
+const otherMobileLinks = [
   { to: '/produtos?categoria=Lembrancinhas', label: 'Lembrancinhas personalizadas para seu evento' },
   { to: '/produtos?categoria=Kit', label: 'Kits completos' },
   { to: '/produtos?categoria=Presente', label: 'Para presentear' },
@@ -15,6 +16,7 @@ export default function Navbar() {
   const { totalItems, openCart } = useCart()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [mobileColecaoOpen, setMobileColecaoOpen] = useState(false)
   const location = useLocation()
 
   useEffect(() => {
@@ -25,6 +27,7 @@ export default function Navbar() {
 
   useEffect(() => {
     setMobileOpen(false)
+    setMobileColecaoOpen(false)
   }, [location.pathname])
 
   useEffect(() => {
@@ -156,7 +159,50 @@ export default function Navbar() {
 
               {/* Nav items */}
               <nav className="flex flex-col flex-1 px-7 py-6 overflow-y-auto">
-                {mobileLinks.map(({ to, label }, i) => (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setMobileColecaoOpen((v) => !v)}
+                    aria-expanded={mobileColecaoOpen}
+                    className="w-full flex items-center justify-between py-5 text-[#FAF7F2]/75 hover:text-[#FAF7F2] text-[11px] font-semibold tracking-[0.2em] uppercase transition-colors duration-200"
+                  >
+                    Coleção
+                    <PlusMinusIcon open={mobileColecaoOpen} className="text-[#FAF7F2]/50" />
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {mobileColecaoOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pb-5 flex flex-col gap-4 pl-4">
+                          {SUBCATEGORIAS_COLECAO.map((sub) => (
+                            <Link
+                              key={sub}
+                              to={`/produtos?categoria=Coleção&subcategoria=${encodeURIComponent(sub)}`}
+                              onClick={() => setMobileOpen(false)}
+                              className="text-[#FAF7F2]/55 hover:text-[#FAF7F2] text-[10px] font-medium tracking-[0.15em] uppercase transition-colors duration-200"
+                            >
+                              {sub}
+                            </Link>
+                          ))}
+                          <Link
+                            to="/produtos?categoria=Coleção"
+                            onClick={() => setMobileOpen(false)}
+                            className="text-[#FAF7F2]/40 hover:text-[#FAF7F2] text-[10px] font-medium tracking-[0.15em] uppercase transition-colors duration-200"
+                          >
+                            Ver toda a coleção
+                          </Link>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <div className="h-px bg-[#FAF7F2]/10" />
+                </div>
+                {otherMobileLinks.map(({ to, label }, i) => (
                   <div key={i}>
                     <Link
                       to={to}
@@ -165,7 +211,7 @@ export default function Navbar() {
                     >
                       {label}
                     </Link>
-                    {i < mobileLinks.length - 1 && (
+                    {i < otherMobileLinks.length - 1 && (
                       <div className="h-px bg-[#FAF7F2]/10" />
                     )}
                   </div>

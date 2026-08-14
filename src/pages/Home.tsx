@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Heart, Gift, Star, ArrowRight, ChevronDown } from 'lucide-react'
+import { Heart, Gift, Star, ArrowRight } from 'lucide-react'
 import ScrollReveal from '../components/ScrollReveal'
 import ProductCard from '../components/ProductCard'
 import Footer from '../components/Footer'
+import PlusMinusIcon from '../components/PlusMinusIcon'
 import { featuredProducts } from '../data/products'
 import { SUBCATEGORIAS_COLECAO } from '../lib/subcategorias'
 
@@ -144,7 +145,7 @@ function CategoryShortcuts() {
   ]
 
   return (
-    <section className="bg-[#FAF7F2] border-b border-[#D9CBB8]">
+    <section className="hidden md:block bg-[#FAF7F2] border-b border-[#D9CBB8]">
       <div className="max-w-6xl mx-auto divide-y divide-[#D9CBB8] md:flex md:divide-y-0 md:divide-x md:divide-[#D9CBB8]">
         <ScrollReveal delay={0} direction="none" className="md:flex-1">
           <button
@@ -159,9 +160,9 @@ function CategoryShortcuts() {
                 Coleção completa
               </span>
             </div>
-            <ChevronDown
-              size={13}
-              className={`text-subtexto/30 group-hover:text-rosa transition-transform duration-300 md:mt-1 ${colecaoOpen ? 'rotate-180' : ''}`}
+            <PlusMinusIcon
+              open={colecaoOpen}
+              className="text-subtexto/40 group-hover:text-rosa transition-colors duration-300 md:mt-1"
             />
           </button>
         </ScrollReveal>
@@ -192,21 +193,25 @@ function CategoryShortcuts() {
             transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
             className="overflow-hidden border-t border-[#D9CBB8] bg-offwhite"
           >
-            <div className="max-w-6xl mx-auto px-6 md:px-8 py-6 flex flex-wrap gap-3">
-              {SUBCATEGORIAS_COLECAO.map((sub) => (
-                <Link
-                  key={sub}
-                  to={`/produtos?categoria=Coleção&subcategoria=${encodeURIComponent(sub)}`}
-                  className="px-4 py-2 rounded-full text-[12px] font-medium text-titulo bg-[#FAF7F2] border border-[#D9CBB8] hover:border-rosa hover:text-rosa transition-colors duration-200"
-                >
-                  {sub}
-                </Link>
+            <div className="max-w-6xl mx-auto px-6 md:px-8 py-7 flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+              {SUBCATEGORIAS_COLECAO.map((sub, i) => (
+                <span key={sub} className="flex items-center gap-3">
+                  {i > 0 && <span className="text-subtexto/30 text-xs">·</span>}
+                  <Link
+                    to={`/produtos?categoria=Coleção&subcategoria=${encodeURIComponent(sub)}`}
+                    className="group/sub relative text-[12px] font-medium text-titulo tracking-[0.03em] transition-colors duration-200 hover:text-rosa"
+                  >
+                    {sub}
+                    <span className="absolute -bottom-1 left-0 h-px w-0 bg-rosa transition-all duration-300 group-hover/sub:w-full" />
+                  </Link>
+                </span>
               ))}
+              <span className="text-subtexto/30 text-xs">·</span>
               <Link
                 to="/produtos?categoria=Coleção"
-                className="px-4 py-2 rounded-full text-[12px] font-medium text-subtexto hover:text-rosa transition-colors duration-200"
+                className="text-[12px] font-medium text-subtexto tracking-[0.03em] hover:text-rosa transition-colors duration-200"
               >
-                Ver toda a coleção →
+                Ver toda a coleção
               </Link>
             </div>
           </motion.div>
