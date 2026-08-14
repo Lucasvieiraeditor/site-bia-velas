@@ -14,6 +14,7 @@ import {
 } from '../lib/supabase'
 import { mockProducts } from '../data/products'
 import { parseAromas } from '../lib/aromas'
+import { SUBCATEGORIAS_COLECAO } from '../lib/subcategorias'
 import type { Product, Order, OrderStatus, ProductCategory } from '../types'
 
 // ── Auth Gate ─────────────────────────────────────────────────────────────────
@@ -217,6 +218,7 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
     descricao: initial?.descricao ?? '',
     preco: initial?.preco?.toString() ?? '',
     categoria: initial?.categoria ?? ('Coleção' as ProductCategory),
+    subcategoria: initial?.subcategoria ?? '',
     estoque: initial?.estoque?.toString() ?? '10',
     ativo: initial?.ativo ?? true,
     peso: initial?.peso?.toString() ?? '',
@@ -292,6 +294,7 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
         aroma: aromaTags.join(', '),
         preco: parseFloat(form.preco),
         categoria: form.categoria,
+        subcategoria: form.categoria === 'Coleção' ? form.subcategoria : '',
         imagem_url: photos[0] || 'https://images.unsplash.com/photo-1602523961358-f9f03dd557db?auto=format&fit=crop&w=600&q=80',
         ...(photos.length > 0 && { imagens: photos.join(',') }),
         estoque: parseInt(form.estoque) || 0,
@@ -425,6 +428,16 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
+
+          {form.categoria === 'Coleção' && (
+            <div>
+              <label className="label">Tipo</label>
+              <select value={form.subcategoria} onChange={set('subcategoria')} className="input-field">
+                <option value="">Selecione o tipo</option>
+                {SUBCATEGORIAS_COLECAO.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          )}
 
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" checked={form.ativo} onChange={(e) => setForm((p) => ({ ...p, ativo: e.target.checked }))} className="w-4 h-4 accent-rosa rounded" />

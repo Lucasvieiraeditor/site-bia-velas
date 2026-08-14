@@ -10,7 +10,7 @@ export const isSupabaseConfigured = true
 
 // ── Produtos ────────────────────────────────────────────────────────────────
 
-export async function fetchProducts(categoria?: string): Promise<Product[]> {
+export async function fetchProducts(categoria?: string, subcategoria?: string): Promise<Product[]> {
   let query = supabase
     .from('produtos_bia')
     .select('*')
@@ -19,6 +19,10 @@ export async function fetchProducts(categoria?: string): Promise<Product[]> {
 
   if (categoria && categoria !== 'Todas') {
     query = query.eq('categoria', categoria)
+  }
+
+  if (subcategoria) {
+    query = query.eq('subcategoria', subcategoria)
   }
 
   const { data, error } = await query

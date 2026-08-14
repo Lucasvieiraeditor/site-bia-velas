@@ -1,10 +1,12 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Heart, Gift, Star, ArrowRight } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Heart, Gift, Star, ArrowRight, ChevronDown } from 'lucide-react'
 import ScrollReveal from '../components/ScrollReveal'
 import ProductCard from '../components/ProductCard'
 import Footer from '../components/Footer'
 import { featuredProducts } from '../data/products'
+import { SUBCATEGORIAS_COLECAO } from '../lib/subcategorias'
 
 // ── Section heading — editorial, respira como revista de luxo ─────────────────
 
@@ -133,18 +135,38 @@ function Hero() {
 // ── Category Shortcuts — faixa editorial numerada ────────────────────────────
 
 function CategoryShortcuts() {
+  const [colecaoOpen, setColecaoOpen] = useState(false)
+
   const shortcuts = [
-    { num: '01', label: 'Coleção completa', to: '/produtos?categoria=Coleção' },
     { num: '02', label: 'Lembrancinhas', to: '/produtos?categoria=Lembrancinhas' },
     { num: '03', label: 'Kits completos', to: '/produtos?categoria=Kit' },
-    { num: '04', label: 'Para presentear', to: '/produtos?categoria=Presente' },
+    { num: '04', label: 'Presentes corporativos', to: '/produtos?categoria=Presente' },
   ]
 
   return (
     <section className="bg-[#FAF7F2] border-b border-[#D9CBB8]">
       <div className="max-w-6xl mx-auto divide-y divide-[#D9CBB8] md:flex md:divide-y-0 md:divide-x md:divide-[#D9CBB8]">
+        <ScrollReveal delay={0} direction="none" className="md:flex-1">
+          <button
+            type="button"
+            onClick={() => setColecaoOpen((v) => !v)}
+            aria-expanded={colecaoOpen}
+            className="group flex items-center justify-between px-6 py-5 md:flex-col md:items-center md:justify-center md:py-9 md:px-4 hover:bg-rosa-claro transition-colors duration-300 w-full text-left"
+          >
+            <div className="flex items-center gap-3 md:flex-col md:gap-2 md:text-center">
+              <span className="font-serif text-[10px] text-subtexto/40 tracking-widest">01</span>
+              <span className="text-[13px] font-medium text-titulo tracking-[0.04em] group-hover:text-rosa transition-colors duration-300">
+                Coleção completa
+              </span>
+            </div>
+            <ChevronDown
+              size={13}
+              className={`text-subtexto/30 group-hover:text-rosa transition-transform duration-300 md:mt-1 ${colecaoOpen ? 'rotate-180' : ''}`}
+            />
+          </button>
+        </ScrollReveal>
         {shortcuts.map(({ num, label, to }, i) => (
-          <ScrollReveal key={num} delay={i * 0.06} direction="none" className="md:flex-1">
+          <ScrollReveal key={num} delay={(i + 1) * 0.06} direction="none" className="md:flex-1">
             <Link
               to={to}
               className="group flex items-center justify-between px-6 py-5 md:flex-col md:items-center md:justify-center md:py-9 md:px-4 hover:bg-rosa-claro transition-colors duration-300 w-full"
@@ -160,6 +182,36 @@ function CategoryShortcuts() {
           </ScrollReveal>
         ))}
       </div>
+
+      <AnimatePresence initial={false}>
+        {colecaoOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+            className="overflow-hidden border-t border-[#D9CBB8] bg-offwhite"
+          >
+            <div className="max-w-6xl mx-auto px-6 md:px-8 py-6 flex flex-wrap gap-3">
+              {SUBCATEGORIAS_COLECAO.map((sub) => (
+                <Link
+                  key={sub}
+                  to={`/produtos?categoria=Coleção&subcategoria=${encodeURIComponent(sub)}`}
+                  className="px-4 py-2 rounded-full text-[12px] font-medium text-titulo bg-[#FAF7F2] border border-[#D9CBB8] hover:border-rosa hover:text-rosa transition-colors duration-200"
+                >
+                  {sub}
+                </Link>
+              ))}
+              <Link
+                to="/produtos?categoria=Coleção"
+                className="px-4 py-2 rounded-full text-[12px] font-medium text-subtexto hover:text-rosa transition-colors duration-200"
+              >
+                Ver toda a coleção →
+              </Link>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   )
 }

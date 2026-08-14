@@ -7,6 +7,7 @@ import Footer from '../components/Footer'
 import ScrollReveal from '../components/ScrollReveal'
 import { mockProducts } from '../data/products'
 import { fetchProducts, isSupabaseConfigured } from '../lib/supabase'
+import { SUBCATEGORIAS_COLECAO } from '../lib/subcategorias'
 import type { Product, ProductCategory } from '../types'
 
 const categories: Array<'Todas' | ProductCategory> = [
@@ -20,28 +21,33 @@ const categories: Array<'Todas' | ProductCategory> = [
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams()
   const paramCategory = searchParams.get('categoria') ?? 'Todas'
+  const paramSubcategoria = searchParams.get('subcategoria') ?? ''
 
   const [activeCategory, setActiveCategory] = useState<'Todas' | ProductCategory>(
     categories.includes(paramCategory as ProductCategory) ? (paramCategory as 'Todas' | ProductCategory) : 'Todas',
+  )
+  const [activeSubcategoria, setActiveSubcategoria] = useState(
+    paramCategory === 'Coleção' ? paramSubcategoria : '',
   )
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const loadProducts = useCallback(async (category: string) => {
+  const loadProducts = useCallback(async (category: string, subcategoria: string) => {
     setLoading(true)
     setError(null)
     try {
       if (isSupabaseConfigured) {
-        const data = await fetchProducts(category === 'Todas' ? undefined : category)
+        const data = await fetchProducts(category === 'Todas' ? undefined : category, subcategoria || undefined)
         setProducts(data)
       } else {
         // Fallback to mock data when Supabase is not configured
         await new Promise((r) => setTimeout(r, 300))
-        const filtered =
-          category === 'Todas'
-            ? mockProducts
-            : mockProducts.filter((p) => p.categoria === category)
+        const filtered = mockProducts.filter((p) => {
+          if (category !== 'Todas' && p.categoria !== category) return false
+          if (subcategoria && p.subcategoria !== subcategoria) return false
+          return true
+        })
         setProducts(filtered)
       }
     } catch {
@@ -53,17 +59,24 @@ export default function Products() {
   }, [])
 
   useEffect(() => {
-    loadProducts(activeCategory)
-  }, [activeCategory, loadProducts])
+    loadProducts(activeCategory, activeSubcategoria)
+  }, [activeCategory, activeSubcategoria, loadProducts])
 
   const handleCategory = (cat: 'Todas' | ProductCategory) => {
     setActiveCategory(cat)
+    setActiveSubcategoria('')
     if (cat === 'Todas') {
       setSearchParams({})
     } else {
       setSearchParams({ categoria: cat })
     }
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleSubcategoria = (sub: string) => {
+    const next = sub === activeSubcategoria ? '' : sub
+    setActiveSubcategoria(next)
+    setSearchParams(next ? { categoria: 'Coleção', subcategoria: next } : { categoria: 'Coleção' })
   }
 
   return (
@@ -115,6 +128,24 @@ export default function Products() {
                 </button>
               )}
             </div>
+
+            {activeCategory === 'Coleção' && (
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-0.5 mt-3">
+                {SUBCATEGORIAS_COLECAO.map((sub) => (
+                  <button
+                    key={sub}
+                    onClick={() => handleSubcategoria(sub)}
+                    className={`shrink-0 px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                      activeSubcategoria === sub
+                        ? 'bg-rosa text-white shadow-rose'
+                        : 'bg-[#FAF7F2] text-subtexto hover:bg-rosa-claro hover:text-titulo'
+                    }`}
+                  >
+                    {sub}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

@@ -6,6 +6,7 @@ export interface Product {
   aroma: string
   preco: number
   categoria: 'Coleção' | 'Lembrancinhas' | 'Kit' | 'Presente'
+  subcategoria?: string
   imagem_url: string
   imagens?: string
   estoque: number
