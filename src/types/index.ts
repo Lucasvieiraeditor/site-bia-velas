@@ -36,6 +36,8 @@ export interface Order {
   cliente_nome: string
   cliente_email: string
   cliente_telefone: string
+  cliente_cpf?: string
+  cliente_rg?: string
   endereco: {
     cep: string
     rua: string
@@ -54,6 +56,11 @@ export interface Order {
   frete_valor?: number
   cupom_codigo?: string
   desconto_valor?: number
+}
+
+export interface LojaConfig {
+  frete_gratis_ativo: boolean
+  frete_gratis_valor_minimo: number | null
 }
 
 export interface Coupon {

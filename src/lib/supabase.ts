@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Product, Order, Coupon } from '../types'
+import type { Product, Order, Coupon, LojaConfig } from '../types'
 
 const SUPABASE_URL = 'https://vnmqdyzjbtouanivsadf.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_mzYk0z87Jsv4TW7gz1i6rA_1wYByL0h'
@@ -202,6 +202,30 @@ export async function updateCoupon(
 export async function deleteCoupon(id: string): Promise<void> {
   const { error } = await supabase.from('cupons_bia').delete().eq('id', id)
   if (error) throw error
+}
+
+// ── Configurações da loja ─────────────────────────────────────────────────────
+// Linha única (id fixo = 1) com as regras gerais da loja — hoje só frete grátis.
+
+export async function fetchLojaConfig(): Promise<LojaConfig> {
+  const { data, error } = await supabase
+    .from('configuracoes_loja')
+    .select('frete_gratis_ativo, frete_gratis_valor_minimo')
+    .eq('id', 1)
+    .maybeSingle()
+  if (error) throw error
+  return data ?? { frete_gratis_ativo: false, frete_gratis_valor_minimo: null }
+}
+
+export async function updateLojaConfig(updates: Partial<LojaConfig>): Promise<LojaConfig> {
+  const { data, error } = await supabase
+    .from('configuracoes_loja')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', 1)
+    .select('frete_gratis_ativo, frete_gratis_valor_minimo')
+    .single()
+  if (error) throw error
+  return data as LojaConfig
 }
 
 // ── Upload de imagem ─────────────────────────────────────────────────────────

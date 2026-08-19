@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ShieldCheck, CreditCard, Loader2, Minus, Plus, Trash2, Truck, Tag, X as XIcon } from 'lucide-react'
 import { useCart } from '../context/CartContext'
-import { createOrder, updateOrder, findRecentPendingOrder, fetchActiveCouponByCode, isSupabaseConfigured } from '../lib/supabase'
-import type { Order, Coupon } from '../types'
+import { createOrder, updateOrder, findRecentPendingOrder, fetchActiveCouponByCode, fetchLojaConfig, isSupabaseConfigured } from '../lib/supabase'
+import type { Order, Coupon, LojaConfig } from '../types'
 
 interface ShippingOption {
   id: number
@@ -18,6 +18,8 @@ interface FormData {
   nome: string
   email: string
   telefone: string
+  cpf: string
+  rg: string
   cep: string
   rua: string
   numero: string
@@ -31,6 +33,8 @@ const emptyForm: FormData = {
   nome: '',
   email: '',
   telefone: '',
+  cpf: '',
+  rg: '',
   cep: '',
   rua: '',
   numero: '',
@@ -45,6 +49,14 @@ function formatPhone(v: string) {
   if (d.length <= 2) return d
   if (d.length <= 7) return `(${d.slice(0, 2)}) ${d.slice(2)}`
   return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
+}
+
+function formatCPF(v: string) {
+  const d = v.replace(/\D/g, '').slice(0, 11)
+  if (d.length <= 3) return d
+  if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`
+  if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`
+  return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`
 }
 
 function formatCEP(v: string) {
@@ -97,6 +109,14 @@ export default function Checkout() {
   const [couponError, setCouponError] = useState<string | null>(null)
   const [applyingCoupon, setApplyingCoupon] = useState(false)
 
+  const [lojaConfig, setLojaConfig] = useState<LojaConfig>({ frete_gratis_ativo: false, frete_gratis_valor_minimo: null })
+  useEffect(() => {
+    if (!isSupabaseConfigured) return
+    fetchLojaConfig().then(setLojaConfig).catch(() => {
+      // silencioso — se falhar, simplesmente não aplica frete grátis (cobra o valor real, nunca gera erro no checkout)
+    })
+  }, [])
+
   const cepRaw = form.cep.replace(/\D/g, '')
   const canCalculateShipping = cepRaw.length === 8
   const discountValue = appliedCoupon
@@ -105,7 +125,11 @@ export default function Checkout() {
         totalPrice,
       )
     : 0
-  const finalTotal = totalPrice + (selectedShipping?.price ?? 0) - discountValue
+  const freeShippingApplies =
+    lojaConfig.frete_gratis_ativo &&
+    (lojaConfig.frete_gratis_valor_minimo == null || totalPrice >= lojaConfig.frete_gratis_valor_minimo)
+  const shippingCharge = freeShippingApplies ? 0 : (selectedShipping?.price ?? 0)
+  const finalTotal = totalPrice + shippingCharge - discountValue
 
   if (items.length === 0) {
     return (
@@ -123,6 +147,7 @@ export default function Checkout() {
   const set = (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     let value = e.target.value
     if (field === 'telefone') value = formatPhone(value)
+    if (field === 'cpf') value = formatCPF(value)
     if (field === 'cep') {
       value = formatCEP(value)
       setShippingOptions([])
@@ -228,13 +253,16 @@ export default function Checkout() {
   }
 
   const validate = (): boolean => {
-    const required: Array<keyof FormData> = ['nome', 'email', 'telefone', 'cep', 'rua', 'numero', 'bairro', 'cidade', 'estado']
+    const required: Array<keyof FormData> = ['nome', 'email', 'telefone', 'cpf', 'rg', 'cep', 'rua', 'numero', 'bairro', 'cidade', 'estado']
     const newErrors: Partial<FormData> = {}
     required.forEach((key) => {
       if (!form[key].trim()) newErrors[key] = 'Campo obrigatório'
     })
     if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       newErrors.email = 'E-mail inválido'
+    }
+    if (form.cpf && form.cpf.replace(/\D/g, '').length !== 11) {
+      newErrors.cpf = 'CPF inválido'
     }
     setErrors(newErrors)
     if (!selectedShipping) {
@@ -266,6 +294,8 @@ export default function Checkout() {
         cliente_nome: form.nome,
         cliente_email: form.email,
         cliente_telefone: form.telefone,
+        cliente_cpf: form.cpf,
+        cliente_rg: form.rg,
         endereco: {
           cep: form.cep,
           rua: form.rua,
@@ -281,7 +311,7 @@ export default function Checkout() {
         ...(selectedShipping && {
           frete_nome: selectedShipping.name,
           frete_prazo: selectedShipping.delivery_time,
-          frete_valor: selectedShipping.price,
+          frete_valor: shippingCharge,
         }),
         ...(appliedCoupon && {
           cupom_codigo: appliedCoupon.codigo,
@@ -304,7 +334,7 @@ export default function Checkout() {
       // ─── MercadoPago: cria preferência de pagamento ──────────────────
       const mpLines = [
         ...orderItems.map((i) => ({ unit_price: i.preco, quantity: i.quantidade })),
-        ...(selectedShipping ? [{ unit_price: selectedShipping.price, quantity: 1 }] : []),
+        ...(selectedShipping ? [{ unit_price: shippingCharge, quantity: 1 }] : []),
       ]
       const mpPrices = applyDiscountProportionally(mpLines, discountValue)
 
@@ -338,6 +368,7 @@ export default function Checkout() {
             surname: form.nome.split(' ').slice(1).join(' ') || '',
             email: form.email,
             phone: { number: form.telefone.replace(/\D/g, '') },
+            identification: { type: 'CPF', number: form.cpf.replace(/\D/g, '') },
           },
           back_urls: {
             success: `https://bybiaggi.com.br/confirmacao?pedido=${orderId}`,
@@ -428,7 +459,33 @@ export default function Checkout() {
                     />
                     {errors.telefone && <p className="text-red-400 text-xs mt-1">{errors.telefone}</p>}
                   </div>
+                  <div>
+                    <label className="label">CPF *</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={form.cpf}
+                      onChange={set('cpf')}
+                      placeholder="000.000.000-00"
+                      maxLength={14}
+                      className={`input-field ${errors.cpf ? 'border-red-300 ring-1 ring-red-300' : ''}`}
+                    />
+                    {errors.cpf && <p className="text-red-400 text-xs mt-1">{errors.cpf}</p>}
+                  </div>
+                  <div>
+                    <label className="label">RG *</label>
+                    <input
+                      type="text"
+                      value={form.rg}
+                      onChange={set('rg')}
+                      placeholder="00.000.000-0"
+                      maxLength={15}
+                      className={`input-field ${errors.rg ? 'border-red-300 ring-1 ring-red-300' : ''}`}
+                    />
+                    {errors.rg && <p className="text-red-400 text-xs mt-1">{errors.rg}</p>}
+                  </div>
                 </div>
+                <p className="text-[11px] text-subtexto">CPF e RG são usados só pra emissão da etiqueta de postagem dos Correios.</p>
               </div>
 
               {/* Address */}
@@ -529,6 +586,12 @@ export default function Checkout() {
                   <h2 className="font-serif text-xl font-medium text-titulo">Calcular frete</h2>
                 </div>
 
+                {freeShippingApplies && (
+                  <p className="text-sm text-[#3D8B5E] font-medium">
+                    Frete grátis {lojaConfig.frete_gratis_valor_minimo ? 'nessa compra' : 'em todas as compras'} 🎉
+                  </p>
+                )}
+
                 {!canCalculateShipping && (
                   <p className="text-xs text-subtexto">Preencha o CEP de entrega acima para calcular o frete.</p>
                 )}
@@ -569,8 +632,12 @@ export default function Checkout() {
                           <span className="text-subtexto text-xs hidden sm:inline">· Correios · até {opt.delivery_time} dias úteis</span>
                           <span className="text-subtexto text-xs sm:hidden">· {opt.delivery_time} dias</span>
                         </div>
-                        <span className="font-medium text-dourado shrink-0 ml-3">
-                          R$ {opt.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        <span className="font-medium shrink-0 ml-3 text-dourado">
+                          {freeShippingApplies ? (
+                            <span className="text-[#3D8B5E]">Grátis</span>
+                          ) : (
+                            `R$ ${opt.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                          )}
                         </span>
                       </button>
                     ))}
@@ -740,9 +807,11 @@ export default function Checkout() {
                 <div className="flex justify-between text-sm">
                   <span className="text-subtexto">Frete</span>
                   <span className="text-titulo">
-                    {selectedShipping
-                      ? `R$ ${selectedShipping.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-                      : '—'}
+                    {!selectedShipping
+                      ? '—'
+                      : freeShippingApplies
+                      ? <span className="text-[#3D8B5E] font-medium">Grátis</span>
+                      : `R$ ${selectedShipping.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                   </span>
                 </div>
                 {selectedShipping && (
