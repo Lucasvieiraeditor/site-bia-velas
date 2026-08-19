@@ -18,7 +18,7 @@ export default function Footer() {
         {/* Logo — fundo claro, logo colorida com presença adequada */}
         <Link to="/" className="block mb-10">
           <img
-            src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
+            src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20NOVO.jpeg"
             alt="By Biaggi"
             className="w-[150px] md:w-[190px] h-auto"
             loading="lazy"

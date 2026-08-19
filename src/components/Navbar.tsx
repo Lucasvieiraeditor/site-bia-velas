@@ -58,7 +58,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/">
             <img
-              src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
+              src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20NOVO.jpeg"
               alt="By Biaggi"
               className="h-14 md:h-20 w-auto"
               loading="eager"
@@ -142,7 +142,7 @@ export default function Navbar() {
               <div className="flex items-center justify-between px-7 pt-8 pb-7 border-b border-[#FAF7F2]/10">
                 <Link to="/" onClick={() => setMobileOpen(false)}>
                   <img
-                    src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
+                    src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20NOVO.jpeg"
                     alt="By Biaggi"
                     className="w-[140px] h-auto"
                     style={{ objectFit: 'contain' }}

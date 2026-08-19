@@ -61,7 +61,7 @@ function Hero() {
           transition={{ duration: 0.9, delay: 0.2 }}
           className="text-white/80 text-xs tracking-[0.3em] uppercase mb-8"
         >
-          Velas artesanais brasileiras
+          ByBiaggi Home Fragrance
         </motion.p>
 
         <motion.h1
@@ -70,8 +70,8 @@ function Hero() {
           transition={{ duration: 0.7, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
           className="font-serif text-5xl md:text-7xl font-medium text-white leading-[1.07] text-balance"
         >
-          Cada chama
-          <em className="block not-italic text-rosa"> conta uma história.</em>
+          Perfume sua casa.
+          <em className="block not-italic text-rosa"> Viva a sua essência.</em>
         </motion.h1>
 
         <motion.p
@@ -80,7 +80,7 @@ function Hero() {
           transition={{ duration: 0.6, delay: 0.15 }}
           className="mt-7 text-white/90 text-base md:text-lg font-light leading-relaxed max-w-sm mx-auto"
         >
-          Criações artesanais com cera vegetal, essências naturais e muito cuidado.
+          Fragrâncias pensadas para transformar ambientes em experiências e momentos em memórias.
         </motion.p>
 
         {/* CTAs — simples, elegantes, sem pulse ou glow */}
@@ -344,9 +344,9 @@ function About() {
           {/* Image */}
           <ScrollReveal direction="left">
             <div className="relative">
-              <div className="rounded-3xl overflow-hidden aspect-[4/5] shadow-soft-lg flex items-center justify-center">
+              <div className="rounded-3xl overflow-hidden aspect-[3/2] shadow-soft-lg bg-[#FAF7F2] flex items-center justify-center p-12 md:p-16">
                 <img
-                  src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
+                  src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20NOVO.jpeg"
                   alt="ByBiaggi"
                   loading="lazy"
                   className="w-full h-full object-contain"
