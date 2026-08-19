@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { SlidersHorizontal, X } from 'lucide-react'
+import { Search, SlidersHorizontal, X } from 'lucide-react'
 import ProductCard from '../components/ProductCard'
 import Footer from '../components/Footer'
 import ScrollReveal from '../components/ScrollReveal'
@@ -18,6 +18,11 @@ const categories: Array<'Todas' | ProductCategory> = [
   'Presente',
 ]
 
+// Remove acentos pra "spray" encontrar "spray" mesmo se o produto tiver "aromatizador de ambiente" etc.
+function normalize(v: string) {
+  return v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+}
+
 export default function Products() {
   const [searchParams, setSearchParams] = useSearchParams()
   const paramCategory = searchParams.get('categoria') ?? 'Todas'
@@ -32,6 +37,7 @@ export default function Products() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const loadProducts = useCallback(async (category: string, subcategoria: string) => {
     setLoading(true)
@@ -79,6 +85,13 @@ export default function Products() {
     setSearchParams(next ? { categoria: 'Coleção', subcategoria: next } : { categoria: 'Coleção' })
   }
 
+  const query = normalize(searchQuery.trim())
+  const visibleProducts = query
+    ? products.filter((p) =>
+        [p.nome, p.categoria, p.subcategoria].some((field) => field && normalize(field).includes(query)),
+      )
+    : products
+
   return (
     <>
       <main className="min-h-screen pt-16 md:pt-20 bg-offwhite">
@@ -94,7 +107,7 @@ export default function Products() {
               </h1>
               <div className="w-8 h-px bg-dourado mx-auto mt-5" />
               <p className="section-subtitle mt-6 max-w-md mx-auto">
-                Cada vela criada com intenção e cuidado, escolha a fragrância que conta a sua história.
+                Uma coleção completa de perfumaria para casa, criada para transformar ambientes, despertar sensações e perfumar memórias.
               </p>
             </ScrollReveal>
           </div>
@@ -146,6 +159,27 @@ export default function Products() {
                 ))}
               </div>
             )}
+
+            <div className="relative mt-3">
+              <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-subtexto/60 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar na coleção, ex: home spray"
+                className="w-full bg-[#FAF7F2] border border-[#D9CBB8] rounded-full pl-10 pr-9 py-2.5 text-sm text-titulo placeholder:text-subtexto/60 focus:outline-none focus:border-rosa transition-colors duration-200"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Limpar busca"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-subtexto/60 hover:text-rosa transition-colors"
+                >
+                  <X size={15} />
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -175,7 +209,7 @@ export default function Products() {
                   </div>
                 ))}
               </motion.div>
-            ) : products.length === 0 ? (
+            ) : visibleProducts.length === 0 ? (
               <motion.div
                 key="empty"
                 initial={{ opacity: 0 }}
@@ -188,10 +222,10 @@ export default function Products() {
                   Nenhuma criação encontrada
                 </h3>
                 <p className="text-subtexto text-sm">
-                  Tente outra categoria ou veja toda a coleção.
+                  {query ? `Nada encontrado para "${searchQuery.trim()}". Tente outro termo.` : 'Tente outra categoria ou veja toda a coleção.'}
                 </p>
                 <button
-                  onClick={() => handleCategory('Todas')}
+                  onClick={() => { handleCategory('Todas'); setSearchQuery('') }}
                   className="btn-primary mt-6"
                 >
                   Ver todas
@@ -199,14 +233,14 @@ export default function Products() {
               </motion.div>
             ) : (
               <motion.div
-                key={`products-${activeCategory}`}
+                key={`products-${activeCategory}-${query}`}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
                 className="grid grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10"
               >
-                {products.map((product, i) => (
+                {visibleProducts.map((product, i) => (
                   <ProductCard key={product.id} product={product} delay={i * 0.05} />
                 ))}
               </motion.div>
@@ -214,9 +248,9 @@ export default function Products() {
           </AnimatePresence>
 
           {/* Count */}
-          {!loading && products.length > 0 && (
+          {!loading && visibleProducts.length > 0 && (
             <p className="text-center text-subtexto text-sm mt-10">
-              {products.length} {products.length === 1 ? 'criação encontrada' : 'criações encontradas'}
+              {visibleProducts.length} {visibleProducts.length === 1 ? 'criação encontrada' : 'criações encontradas'}
               {activeCategory !== 'Todas' && ` em ${activeCategory}`}
             </p>
           )}
