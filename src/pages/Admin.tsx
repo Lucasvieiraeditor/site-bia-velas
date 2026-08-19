@@ -11,12 +11,13 @@ import {
   fetchAllProducts, fetchOrders,
   createProduct, updateProduct, deleteProduct, updateOrderStatus, deleteOrder,
   fetchCoupons, createCoupon, updateCoupon, deleteCoupon,
+  fetchLojaConfig, updateLojaConfig,
   uploadProductImage, isSupabaseConfigured,
 } from '../lib/supabase'
 import { mockProducts } from '../data/products'
 import { parseAromas } from '../lib/aromas'
 import { SUBCATEGORIAS_COLECAO } from '../lib/subcategorias'
-import type { Product, Order, OrderStatus, ProductCategory, Coupon } from '../types'
+import type { Product, Order, OrderStatus, ProductCategory, Coupon, LojaConfig } from '../types'
 
 // ── Auth Gate ─────────────────────────────────────────────────────────────────
 
@@ -60,7 +61,7 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
             <img
-              src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
+              src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20NOVO.jpeg"
               alt="By Biaggi"
               className="w-[180px] md:w-[220px] h-auto"
               style={{ objectFit: 'contain', display: 'block' }}
@@ -141,6 +142,101 @@ function StatCard({
       </div>
       <p className="text-subtexto text-sm">{label}</p>
       <p className="font-serif text-2xl font-medium text-titulo mt-1">{value}</p>
+    </div>
+  )
+}
+
+// ── Frete grátis (config da loja) ───────────────────────────────────────────
+
+function FreteGratisCard({
+  config,
+  saving,
+  onSave,
+}: {
+  config: LojaConfig
+  saving: boolean
+  onSave: (next: LojaConfig) => void
+}) {
+  const [ativo, setAtivo] = useState(config.frete_gratis_ativo)
+  const [valorMinimo, setValorMinimo] = useState(
+    config.frete_gratis_valor_minimo != null ? String(config.frete_gratis_valor_minimo) : '',
+  )
+
+  useEffect(() => {
+    setAtivo(config.frete_gratis_ativo)
+    setValorMinimo(config.frete_gratis_valor_minimo != null ? String(config.frete_gratis_valor_minimo) : '')
+  }, [config])
+
+  const dirty =
+    ativo !== config.frete_gratis_ativo ||
+    valorMinimo !== (config.frete_gratis_valor_minimo != null ? String(config.frete_gratis_valor_minimo) : '')
+
+  const handleSave = () => {
+    const parsed = valorMinimo.trim() ? parseFloat(valorMinimo.replace(',', '.')) : null
+    onSave({ frete_gratis_ativo: ativo, frete_gratis_valor_minimo: parsed && parsed > 0 ? parsed : null })
+  }
+
+  return (
+    <div className="bg-[#FAF7F2] rounded-2xl shadow-soft p-6 mb-6">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-[#E8F5EE] text-[#3D8B5E] flex items-center justify-center shrink-0">
+            <Truck size={20} />
+          </div>
+          <div>
+            <h2 className="font-serif text-base font-medium text-titulo">Frete grátis</h2>
+            <p className="text-subtexto text-xs mt-0.5">
+              {ativo
+                ? valorMinimo.trim()
+                  ? `Ativo · a partir de R$ ${valorMinimo}`
+                  : 'Ativo · grátis pra todo mundo'
+                : 'Desativado no momento'}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={ativo}
+          onClick={() => setAtivo((v) => !v)}
+          className={`shrink-0 w-11 h-6 rounded-full transition-colors duration-200 relative ${ativo ? 'bg-[#3D8B5E]' : 'bg-[#D9CBB8]'}`}
+        >
+          <span
+            className={`absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${ativo ? 'translate-x-5' : 'translate-x-0'}`}
+          />
+        </button>
+      </div>
+
+      {ativo && (
+        <div className="mt-4 pt-4 border-t border-[#D9CBB8] flex items-center gap-3 flex-wrap">
+          <label className="text-sm text-subtexto">A partir de</label>
+          <div className="relative w-40">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-subtexto text-sm">R$</span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={valorMinimo}
+              onChange={(e) => setValorMinimo(e.target.value.replace(/[^\d,.]/g, ''))}
+              placeholder="deixe vazio p/ todos"
+              className="input-field pl-9 py-2 text-sm"
+            />
+          </div>
+          <p className="text-xs text-subtexto/70">Vazio = frete grátis pra todo mundo, sem valor mínimo.</p>
+        </div>
+      )}
+
+      {dirty && (
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="btn-primary px-5 py-2 text-sm disabled:opacity-60"
+          >
+            {saving ? <Loader2 size={14} className="animate-spin" /> : 'Salvar'}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
@@ -525,6 +621,13 @@ function OrderDetailModal({
               <p className="font-medium text-titulo">{order.cliente_nome}</p>
               <p className="text-subtexto">{order.cliente_email}</p>
               <p className="text-subtexto">{order.cliente_telefone}</p>
+              {(order.cliente_cpf || order.cliente_rg) && (
+                <p className="text-subtexto">
+                  {order.cliente_cpf && `CPF ${order.cliente_cpf}`}
+                  {order.cliente_cpf && order.cliente_rg && ' · '}
+                  {order.cliente_rg && `RG ${order.cliente_rg}`}
+                </p>
+              )}
             </div>
           </div>
 
@@ -809,16 +912,19 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
   const [newCoupon, setNewCoupon] = useState(false)
   const [deletingCouponId, setDeletingCouponId] = useState<string | null>(null)
   const [loadError, setLoadError] = useState('')
+  const [lojaConfig, setLojaConfig] = useState<LojaConfig>({ frete_gratis_ativo: false, frete_gratis_valor_minimo: null })
+  const [savingLojaConfig, setSavingLojaConfig] = useState(false)
 
   const load = useCallback(async () => {
     setLoadingData(true)
     setLoadError('')
     try {
       if (isSupabaseConfigured) {
-        const [prods, ords, cpns] = await Promise.all([fetchAllProducts(), fetchOrders(), fetchCoupons()])
+        const [prods, ords, cpns, cfg] = await Promise.all([fetchAllProducts(), fetchOrders(), fetchCoupons(), fetchLojaConfig()])
         setProducts(prods)
         setOrders(ords)
         setCoupons(cpns)
+        setLojaConfig(cfg)
       } else {
         await new Promise((r) => setTimeout(r, 400))
         setProducts(mockProducts)
@@ -1030,7 +1136,26 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
     }
   }
 
-  const couponUsage = (codigo: string) => orders.filter((o) => o.cupom_codigo === codigo).length
+  // Só conta pedido que confirmou pagamento — "aguardando" é checkout aberto
+  // e nunca finalizado, não pode contar como uso do cupom.
+  const couponUsage = (codigo: string) =>
+    orders.filter((o) => o.cupom_codigo === codigo && o.status !== 'aguardando').length
+
+  const handleSaveLojaConfig = async (next: LojaConfig) => {
+    setSavingLojaConfig(true)
+    try {
+      if (isSupabaseConfigured) {
+        const saved = await updateLojaConfig(next)
+        setLojaConfig(saved)
+      } else {
+        setLojaConfig(next)
+      }
+    } catch {
+      alert('Erro ao salvar configuração de frete grátis.')
+    } finally {
+      setSavingLojaConfig(false)
+    }
+  }
 
   const filteredProducts = products.filter((p) =>
     p.nome.toLowerCase().includes(productSearch.toLowerCase()) ||
@@ -1057,7 +1182,7 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
 
           <div className="flex justify-center">
             <img
-              src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20SITE.png"
+              src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20NOVO.jpeg"
               alt="By Biaggi"
               className="h-10 md:h-14 w-auto"
               style={{ objectFit: 'contain', display: 'block' }}
@@ -1110,6 +1235,9 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
                 transition={{ duration: 0.4 }}
               >
                 <h1 className="font-serif text-2xl font-medium text-titulo mb-6">Visão geral</h1>
+
+                <FreteGratisCard config={lojaConfig} saving={savingLojaConfig} onSave={handleSaveLojaConfig} />
+
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                   <StatCard icon={ShoppingBag} label="Pedidos Hoje" value={ordersToday.length} color="bg-rosa-claro text-rosa" />
                   <StatCard
