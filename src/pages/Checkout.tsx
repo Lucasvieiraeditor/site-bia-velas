@@ -100,13 +100,13 @@ export default function Checkout() {
   const [calculatingShipping, setCalculatingShipping] = useState(false)
   const [shippingValidationError, setShippingValidationError] = useState<string | null>(null)
 
-  // Boituva combina a entrega direto com a Bia (sem Correios, sem custo de frete).
-  // Só ativa pra Boituva mesmo — comparação exata, não pega cidade vizinha.
-  const [boituvaCombinar, setBoituvaCombinar] = useState(false)
-  const isBoituva = form.cidade.trim().toLowerCase() === 'boituva'
+  // Botucatu combina a entrega direto com a Bia (sem Correios, sem custo de frete).
+  // Só ativa pra Botucatu mesmo — comparação exata, não pega cidade vizinha.
+  const [botucatuCombinar, setBotucatuCombinar] = useState(false)
+  const isBotucatu = form.cidade.trim().toLowerCase() === 'botucatu'
   useEffect(() => {
-    if (!isBoituva) setBoituvaCombinar(false)
-  }, [isBoituva])
+    if (!isBotucatu) setBotucatuCombinar(false)
+  }, [isBotucatu])
 
   // Trava contra clique duplicado — não depende do re-render do React,
   // por isso funciona mesmo se o segundo toque chegar antes do botão desabilitar.
@@ -136,7 +136,7 @@ export default function Checkout() {
   const freeShippingApplies =
     lojaConfig.frete_gratis_ativo &&
     (lojaConfig.frete_gratis_valor_minimo == null || totalPrice >= lojaConfig.frete_gratis_valor_minimo)
-  const shippingCharge = boituvaCombinar ? 0 : freeShippingApplies ? 0 : (selectedShipping?.price ?? 0)
+  const shippingCharge = botucatuCombinar ? 0 : freeShippingApplies ? 0 : (selectedShipping?.price ?? 0)
   const finalTotal = totalPrice + shippingCharge - discountValue
 
   if (items.length === 0) {
@@ -273,12 +273,12 @@ export default function Checkout() {
       newErrors.cpf = 'CPF inválido'
     }
     setErrors(newErrors)
-    if (!boituvaCombinar && !selectedShipping) {
+    if (!botucatuCombinar && !selectedShipping) {
       setShippingValidationError('Calcule e selecione uma opção de frete para continuar.')
     } else {
       setShippingValidationError(null)
     }
-    return Object.keys(newErrors).length === 0 && (boituvaCombinar || !!selectedShipping)
+    return Object.keys(newErrors).length === 0 && (botucatuCombinar || !!selectedShipping)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -316,9 +316,9 @@ export default function Checkout() {
         itens: orderItems,
         valor_total: finalTotal,
         status: 'aguardando',
-        ...(boituvaCombinar
+        ...(botucatuCombinar
           ? {
-              frete_nome: 'Entrega combinada — Boituva',
+              frete_nome: 'Entrega combinada — Botucatu',
               frete_prazo: 0,
               frete_valor: 0,
             }
@@ -600,14 +600,14 @@ export default function Checkout() {
                   <h2 className="font-serif text-xl font-medium text-titulo">Calcular frete</h2>
                 </div>
 
-                {isBoituva && !boituvaCombinar && (
+                {isBotucatu && !botucatuCombinar && (
                   <div className="rounded-xl border border-[#3D8B5E]/30 bg-[#3D8B5E]/5 p-4 space-y-2.5">
                     <p className="text-sm text-titulo">
-                      <span className="font-medium">Você mora em Boituva!</span> Prefere combinar a entrega direto com a gente pelo WhatsApp, sem pagar frete?
+                      <span className="font-medium">Você mora em Botucatu!</span> Prefere combinar a entrega direto com a gente pelo WhatsApp, sem pagar frete?
                     </p>
                     <button
                       type="button"
-                      onClick={() => { setBoituvaCombinar(true); setShippingValidationError(null) }}
+                      onClick={() => { setBotucatuCombinar(true); setShippingValidationError(null) }}
                       className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#3D8B5E] text-white text-sm font-medium hover:bg-[#3D8B5E]/90 transition-colors duration-200"
                     >
                       Combinar entrega (sem frete)
@@ -615,15 +615,15 @@ export default function Checkout() {
                   </div>
                 )}
 
-                {boituvaCombinar ? (
+                {botucatuCombinar ? (
                   <div className="rounded-xl border border-[#3D8B5E]/30 bg-[#3D8B5E]/5 p-4 space-y-2">
-                    <p className="text-sm text-[#3D8B5E] font-medium">Entrega combinada · Boituva — sem frete 🤝</p>
+                    <p className="text-sm text-[#3D8B5E] font-medium">Entrega combinada · Botucatu — sem frete 🤝</p>
                     <p className="text-xs text-subtexto">
                       A gente entra em contato pelo WhatsApp que você informou pra combinar o local e o horário da entrega.
                     </p>
                     <button
                       type="button"
-                      onClick={() => setBoituvaCombinar(false)}
+                      onClick={() => setBotucatuCombinar(false)}
                       className="text-xs text-subtexto hover:text-rosa transition-colors underline"
                     >
                       Prefiro calcular o frete dos Correios
@@ -854,7 +854,7 @@ export default function Checkout() {
                 <div className="flex justify-between text-sm">
                   <span className="text-subtexto">Frete</span>
                   <span className="text-titulo">
-                    {boituvaCombinar
+                    {botucatuCombinar
                       ? <span className="text-[#3D8B5E] font-medium">Combinado</span>
                       : !selectedShipping
                       ? '—'
@@ -863,8 +863,8 @@ export default function Checkout() {
                       : `R$ ${selectedShipping.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                   </span>
                 </div>
-                {boituvaCombinar ? (
-                  <p className="text-[11px] text-subtexto">Entrega combinada · Boituva — sem frete</p>
+                {botucatuCombinar ? (
+                  <p className="text-[11px] text-subtexto">Entrega combinada · Botucatu — sem frete</p>
                 ) : selectedShipping && (
                   <p className="text-[11px] text-subtexto">
                     {selectedShipping.name} · Correios · até {selectedShipping.delivery_time} dias úteis

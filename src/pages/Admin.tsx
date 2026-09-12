@@ -673,9 +673,9 @@ function OrderDetailModal({
               <span>R$ {(Array.isArray(order.itens) ? order.itens : []).reduce((s, i) => s + i.preco * i.quantidade, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
             </div>
             {order.frete_nome && (
-              order.frete_nome.includes('Boituva') ? (
+              order.frete_nome.includes('Botucatu') ? (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="inline-flex items-center gap-1.5 text-[#3D8B5E] font-medium">🤝 Entrega combinada · Boituva — sem frete</span>
+                  <span className="inline-flex items-center gap-1.5 text-[#3D8B5E] font-medium">🤝 Entrega combinada · Botucatu — sem frete</span>
                 </div>
               ) : (
                 <div className="flex items-center justify-between text-sm">
@@ -1520,9 +1520,9 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
                         ))}
                       </div>
                       {order.frete_nome && (
-                        order.frete_nome.includes('Boituva') ? (
+                        order.frete_nome.includes('Botucatu') ? (
                           <div className="mt-2 flex items-center gap-2 text-xs text-[#3D8B5E] font-medium">
-                            <span>🤝 Entrega combinada · Boituva — sem frete</span>
+                            <span>🤝 Entrega combinada · Botucatu — sem frete</span>
                           </div>
                         ) : (
                           <div className="mt-2 flex items-center gap-2 text-xs text-subtexto">
