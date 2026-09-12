@@ -194,7 +194,7 @@ export default function Checkout() {
       const totalPeso = items.reduce((sum, item) => sum + (item.product.peso ?? 100) * item.quantidade, 0)
       const totalQuantidade = items.reduce((sum, item) => sum + item.quantidade, 0)
 
-      const res = await fetch('/.netlify/functions/calcular-frete', {
+      const res = await fetch('/api/calcular-frete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -355,7 +355,7 @@ export default function Checkout() {
         }] : []),
       ]
 
-      const mpRes = await fetch('/.netlify/functions/create-mp-preference', {
+      const mpRes = await fetch('/api/create-mp-preference', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -375,7 +375,7 @@ export default function Checkout() {
             failure: 'https://bybiaggi.com.br/carrinho',
             pending: `https://bybiaggi.com.br/confirmacao?pedido=${orderId}`,
           },
-          notification_url: 'https://bybiaggi.com.br/.netlify/functions/mp-webhook',
+          notification_url: 'https://bybiaggi.com.br/api/mp-webhook',
           auto_return: 'approved',
         }),
       })

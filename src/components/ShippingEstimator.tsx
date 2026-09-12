@@ -30,7 +30,7 @@ export default function ShippingEstimator({ product }: { product: Product }) {
     setError(null)
     setOptions([])
     try {
-      const res = await fetch('/.netlify/functions/calcular-frete', {
+      const res = await fetch('/api/calcular-frete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
