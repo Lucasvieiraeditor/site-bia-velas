@@ -100,6 +100,14 @@ export default function Checkout() {
   const [calculatingShipping, setCalculatingShipping] = useState(false)
   const [shippingValidationError, setShippingValidationError] = useState<string | null>(null)
 
+  // Boituva combina a entrega direto com a Bia (sem Correios, sem custo de frete).
+  // Só ativa pra Boituva mesmo — comparação exata, não pega cidade vizinha.
+  const [boituvaCombinar, setBoituvaCombinar] = useState(false)
+  const isBoituva = form.cidade.trim().toLowerCase() === 'boituva'
+  useEffect(() => {
+    if (!isBoituva) setBoituvaCombinar(false)
+  }, [isBoituva])
+
   // Trava contra clique duplicado — não depende do re-render do React,
   // por isso funciona mesmo se o segundo toque chegar antes do botão desabilitar.
   const submittingRef = useRef(false)
@@ -128,7 +136,7 @@ export default function Checkout() {
   const freeShippingApplies =
     lojaConfig.frete_gratis_ativo &&
     (lojaConfig.frete_gratis_valor_minimo == null || totalPrice >= lojaConfig.frete_gratis_valor_minimo)
-  const shippingCharge = freeShippingApplies ? 0 : (selectedShipping?.price ?? 0)
+  const shippingCharge = boituvaCombinar ? 0 : freeShippingApplies ? 0 : (selectedShipping?.price ?? 0)
   const finalTotal = totalPrice + shippingCharge - discountValue
 
   if (items.length === 0) {
@@ -265,12 +273,12 @@ export default function Checkout() {
       newErrors.cpf = 'CPF inválido'
     }
     setErrors(newErrors)
-    if (!selectedShipping) {
+    if (!boituvaCombinar && !selectedShipping) {
       setShippingValidationError('Calcule e selecione uma opção de frete para continuar.')
     } else {
       setShippingValidationError(null)
     }
-    return Object.keys(newErrors).length === 0 && !!selectedShipping
+    return Object.keys(newErrors).length === 0 && (boituvaCombinar || !!selectedShipping)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -308,11 +316,17 @@ export default function Checkout() {
         itens: orderItems,
         valor_total: finalTotal,
         status: 'aguardando',
-        ...(selectedShipping && {
-          frete_nome: selectedShipping.name,
-          frete_prazo: selectedShipping.delivery_time,
-          frete_valor: shippingCharge,
-        }),
+        ...(boituvaCombinar
+          ? {
+              frete_nome: 'Entrega combinada — Boituva',
+              frete_prazo: 0,
+              frete_valor: 0,
+            }
+          : selectedShipping && {
+              frete_nome: selectedShipping.name,
+              frete_prazo: selectedShipping.delivery_time,
+              frete_valor: shippingCharge,
+            }),
         ...(appliedCoupon && {
           cupom_codigo: appliedCoupon.codigo,
           desconto_valor: discountValue,
@@ -586,102 +600,135 @@ export default function Checkout() {
                   <h2 className="font-serif text-xl font-medium text-titulo">Calcular frete</h2>
                 </div>
 
-                {freeShippingApplies && (
-                  <p className="text-sm text-[#3D8B5E] font-medium">
-                    Frete grátis {lojaConfig.frete_gratis_valor_minimo ? 'nessa compra' : 'em todas as compras'} 🎉
-                  </p>
-                )}
-
-                {!canCalculateShipping && (
-                  <p className="text-xs text-subtexto">Preencha o CEP de entrega acima para calcular o frete.</p>
-                )}
-
-                {canCalculateShipping && shippingOptions.length === 0 && !shippingError && (
-                  <button
-                    type="button"
-                    onClick={calculateShipping}
-                    disabled={calculatingShipping}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-rosa text-[#FAF7F2] text-sm font-medium hover:bg-rosa/90 transition-colors duration-200 disabled:opacity-60"
-                  >
-                    {calculatingShipping ? (
-                      <><Loader2 size={14} className="animate-spin" /> Calculando…</>
-                    ) : (
-                      <><Truck size={14} /> Calcular Frete</>
-                    )}
-                  </button>
-                )}
-
-                {shippingOptions.length > 0 && (
-                  <div className="space-y-2">
-                    {shippingOptions.map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => { setSelectedShipping(opt); setShippingValidationError(null) }}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm transition-all duration-200 ${
-                          selectedShipping?.id === opt.id
-                            ? 'border-rosa bg-rosa/5 text-titulo'
-                            : 'border-[#D9CBB8] bg-white/60 text-subtexto hover:border-rosa/50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 transition-colors ${
-                            selectedShipping?.id === opt.id ? 'border-rosa bg-rosa' : 'border-[#D9CBB8]'
-                          }`} />
-                          <span className="font-medium text-titulo">{opt.name}</span>
-                          <span className="text-subtexto text-xs hidden sm:inline">· Correios · até {opt.delivery_time} dias úteis</span>
-                          <span className="text-subtexto text-xs sm:hidden">· {opt.delivery_time} dias</span>
-                        </div>
-                        <span className="font-medium shrink-0 ml-3 text-dourado">
-                          {freeShippingApplies ? (
-                            <span className="text-[#3D8B5E]">Grátis</span>
-                          ) : (
-                            `R$ ${opt.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-                          )}
-                        </span>
-                      </button>
-                    ))}
+                {isBoituva && !boituvaCombinar && (
+                  <div className="rounded-xl border border-[#3D8B5E]/30 bg-[#3D8B5E]/5 p-4 space-y-2.5">
+                    <p className="text-sm text-titulo">
+                      <span className="font-medium">Você mora em Boituva!</span> Prefere combinar a entrega direto com a gente pelo WhatsApp, sem pagar frete?
+                    </p>
                     <button
                       type="button"
-                      onClick={calculateShipping}
-                      disabled={calculatingShipping}
-                      className="text-xs text-subtexto hover:text-rosa transition-colors mt-1 disabled:opacity-50"
+                      onClick={() => { setBoituvaCombinar(true); setShippingValidationError(null) }}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#3D8B5E] text-white text-sm font-medium hover:bg-[#3D8B5E]/90 transition-colors duration-200"
                     >
-                      {calculatingShipping ? 'Recalculando…' : 'Recalcular'}
+                      Combinar entrega (sem frete)
                     </button>
                   </div>
                 )}
 
-                {shippingError && (
-                  <div className="space-y-3">
-                    <p className="text-sm text-subtexto">{shippingError}</p>
-                    <a
-                      href="https://wa.me/5511992930655"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-sm text-rosa hover:underline"
+                {boituvaCombinar ? (
+                  <div className="rounded-xl border border-[#3D8B5E]/30 bg-[#3D8B5E]/5 p-4 space-y-2">
+                    <p className="text-sm text-[#3D8B5E] font-medium">Entrega combinada · Boituva — sem frete 🤝</p>
+                    <p className="text-xs text-subtexto">
+                      A gente entra em contato pelo WhatsApp que você informou pra combinar o local e o horário da entrega.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setBoituvaCombinar(false)}
+                      className="text-xs text-subtexto hover:text-rosa transition-colors underline"
                     >
-                      Falar no WhatsApp →
-                    </a>
-                    <div>
+                      Prefiro calcular o frete dos Correios
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {freeShippingApplies && (
+                      <p className="text-sm text-[#3D8B5E] font-medium">
+                        Frete grátis {lojaConfig.frete_gratis_valor_minimo ? 'nessa compra' : 'em todas as compras'} 🎉
+                      </p>
+                    )}
+
+                    {!canCalculateShipping && (
+                      <p className="text-xs text-subtexto">Preencha o CEP de entrega acima para calcular o frete.</p>
+                    )}
+
+                    {canCalculateShipping && shippingOptions.length === 0 && !shippingError && (
                       <button
                         type="button"
                         onClick={calculateShipping}
                         disabled={calculatingShipping}
-                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-rosa text-[#FAF7F2] text-sm font-medium hover:bg-rosa/90 transition-colors duration-200 disabled:opacity-60 mt-1"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-rosa text-[#FAF7F2] text-sm font-medium hover:bg-rosa/90 transition-colors duration-200 disabled:opacity-60"
                       >
                         {calculatingShipping ? (
                           <><Loader2 size={14} className="animate-spin" /> Calculando…</>
                         ) : (
-                          <><Truck size={14} /> Tentar novamente</>
+                          <><Truck size={14} /> Calcular Frete</>
                         )}
                       </button>
-                    </div>
-                  </div>
-                )}
+                    )}
 
-                {shippingValidationError && (
-                  <p className="text-red-400 text-xs">{shippingValidationError}</p>
+                    {shippingOptions.length > 0 && (
+                      <div className="space-y-2">
+                        {shippingOptions.map((opt) => (
+                          <button
+                            key={opt.id}
+                            type="button"
+                            onClick={() => { setSelectedShipping(opt); setShippingValidationError(null) }}
+                            className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-sm transition-all duration-200 ${
+                              selectedShipping?.id === opt.id
+                                ? 'border-rosa bg-rosa/5 text-titulo'
+                                : 'border-[#D9CBB8] bg-white/60 text-subtexto hover:border-rosa/50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-3.5 h-3.5 rounded-full border-2 shrink-0 transition-colors ${
+                                selectedShipping?.id === opt.id ? 'border-rosa bg-rosa' : 'border-[#D9CBB8]'
+                              }`} />
+                              <span className="font-medium text-titulo">{opt.name}</span>
+                              <span className="text-subtexto text-xs hidden sm:inline">· Correios · até {opt.delivery_time} dias úteis</span>
+                              <span className="text-subtexto text-xs sm:hidden">· {opt.delivery_time} dias</span>
+                            </div>
+                            <span className="font-medium shrink-0 ml-3 text-dourado">
+                              {freeShippingApplies ? (
+                                <span className="text-[#3D8B5E]">Grátis</span>
+                              ) : (
+                                `R$ ${opt.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                              )}
+                            </span>
+                          </button>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={calculateShipping}
+                          disabled={calculatingShipping}
+                          className="text-xs text-subtexto hover:text-rosa transition-colors mt-1 disabled:opacity-50"
+                        >
+                          {calculatingShipping ? 'Recalculando…' : 'Recalcular'}
+                        </button>
+                      </div>
+                    )}
+
+                    {shippingError && (
+                      <div className="space-y-3">
+                        <p className="text-sm text-subtexto">{shippingError}</p>
+                        <a
+                          href="https://wa.me/5511992930655"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-sm text-rosa hover:underline"
+                        >
+                          Falar no WhatsApp →
+                        </a>
+                        <div>
+                          <button
+                            type="button"
+                            onClick={calculateShipping}
+                            disabled={calculatingShipping}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-rosa text-[#FAF7F2] text-sm font-medium hover:bg-rosa/90 transition-colors duration-200 disabled:opacity-60 mt-1"
+                          >
+                            {calculatingShipping ? (
+                              <><Loader2 size={14} className="animate-spin" /> Calculando…</>
+                            ) : (
+                              <><Truck size={14} /> Tentar novamente</>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {shippingValidationError && (
+                      <p className="text-red-400 text-xs">{shippingValidationError}</p>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -807,14 +854,18 @@ export default function Checkout() {
                 <div className="flex justify-between text-sm">
                   <span className="text-subtexto">Frete</span>
                   <span className="text-titulo">
-                    {!selectedShipping
+                    {boituvaCombinar
+                      ? <span className="text-[#3D8B5E] font-medium">Combinado</span>
+                      : !selectedShipping
                       ? '—'
                       : freeShippingApplies
                       ? <span className="text-[#3D8B5E] font-medium">Grátis</span>
                       : `R$ ${selectedShipping.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                   </span>
                 </div>
-                {selectedShipping && (
+                {boituvaCombinar ? (
+                  <p className="text-[11px] text-subtexto">Entrega combinada · Boituva — sem frete</p>
+                ) : selectedShipping && (
                   <p className="text-[11px] text-subtexto">
                     {selectedShipping.name} · Correios · até {selectedShipping.delivery_time} dias úteis
                   </p>

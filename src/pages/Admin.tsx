@@ -673,10 +673,16 @@ function OrderDetailModal({
               <span>R$ {(Array.isArray(order.itens) ? order.itens : []).reduce((s, i) => s + i.preco * i.quantidade, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
             </div>
             {order.frete_nome && (
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-subtexto">Frete · {order.frete_nome} · até {order.frete_prazo} dias úteis</span>
-                <span className="text-titulo font-medium">R$ {(order.frete_valor ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-              </div>
+              order.frete_nome.includes('Boituva') ? (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="inline-flex items-center gap-1.5 text-[#3D8B5E] font-medium">🤝 Entrega combinada · Boituva — sem frete</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-subtexto">Frete · {order.frete_nome} · até {order.frete_prazo} dias úteis</span>
+                  <span className="text-titulo font-medium">R$ {(order.frete_valor ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                </div>
+              )
             )}
             {order.cupom_codigo && (
               <div className="flex items-center justify-between text-sm">
@@ -1514,10 +1520,16 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
                         ))}
                       </div>
                       {order.frete_nome && (
-                        <div className="mt-2 flex items-center gap-2 text-xs text-subtexto">
-                          <Truck size={12} className="shrink-0" />
-                          <span>Frete · {order.frete_nome} · até {order.frete_prazo} dias úteis · R$ {(order.frete_valor ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                        </div>
+                        order.frete_nome.includes('Boituva') ? (
+                          <div className="mt-2 flex items-center gap-2 text-xs text-[#3D8B5E] font-medium">
+                            <span>🤝 Entrega combinada · Boituva — sem frete</span>
+                          </div>
+                        ) : (
+                          <div className="mt-2 flex items-center gap-2 text-xs text-subtexto">
+                            <Truck size={12} className="shrink-0" />
+                            <span>Frete · {order.frete_nome} · até {order.frete_prazo} dias úteis · R$ {(order.frete_valor ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                          </div>
+                        )
                       )}
                       {order.cupom_codigo && (
                         <div className="mt-2 flex items-center gap-2 text-xs text-subtexto">
