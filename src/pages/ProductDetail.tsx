@@ -7,7 +7,7 @@ import ShippingEstimator from '../components/ShippingEstimator'
 import ScrollReveal from '../components/ScrollReveal'
 import { fetchProductById, isSupabaseConfigured } from '../lib/supabase'
 import { mockProducts } from '../data/products'
-import { useAromaSelector } from '../hooks/useAromaSelector'
+import { useProductSelection, MENSAGEM_PERSONALIZADA_MAX } from '../hooks/useProductSelection'
 import type { Product } from '../types'
 
 export default function ProductDetail() {
@@ -70,7 +70,12 @@ function ProductDetailView({ product }: { product: Product }) {
   const navigate = useNavigate()
   const [imgError, setImgError] = useState(false)
   const [activeImage, setActiveImage] = useState(0)
-  const { aromas, selectedAroma, pickAroma, showAromaWarning, handleAdd, added } = useAromaSelector(product)
+  const {
+    aromas, selectedAroma, pickAroma, showAromaWarning,
+    cores, selectedCor, pickCor, showCorWarning,
+    mensagemPersonalizada, setMensagem, showMensagemWarning,
+    handleAdd, added,
+  } = useProductSelection(product)
 
   const images = product.imagens ? product.imagens.split(',').filter(Boolean) : [product.imagem_url]
   const currentImage = images[activeImage] ?? images[0]
@@ -174,6 +179,58 @@ function ProductDetailView({ product }: { product: Product }) {
               )}
               {aromas.length === 1 && (
                 <p className="text-subtexto text-sm mt-4">Aroma: <span className="text-titulo font-medium">{aromas[0]}</span></p>
+              )}
+
+              {cores.length > 1 && (
+                <div className="mt-6">
+                  <p className="label mb-2">Escolha a cor</p>
+                  <div className="flex flex-wrap gap-2">
+                    {cores.map((cor) => (
+                      <button
+                        key={cor}
+                        type="button"
+                        onClick={() => pickCor(cor)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
+                          selectedCor === cor
+                            ? 'bg-rosa text-white'
+                            : 'bg-[#FAF7F2] border border-[#D9CBB8] text-titulo hover:border-rosa'
+                        }`}
+                      >
+                        {cor}
+                      </button>
+                    ))}
+                  </div>
+                  {showCorWarning && (
+                    <p className="text-red-400 text-xs mt-2">Escolha uma cor antes de adicionar.</p>
+                  )}
+                </div>
+              )}
+              {cores.length === 1 && (
+                <p className="text-subtexto text-sm mt-2">Cor: <span className="text-titulo font-medium">{cores[0]}</span></p>
+              )}
+
+              {product.personalizavel && (
+                <div className="mt-6">
+                  <p className="label mb-2">Escreva sua frase</p>
+                  <textarea
+                    value={mensagemPersonalizada}
+                    onChange={(e) => setMensagem(e.target.value)}
+                    placeholder="A frase que vai na sua vela personalizada..."
+                    rows={2}
+                    maxLength={MENSAGEM_PERSONALIZADA_MAX}
+                    className={`input-field resize-none ${showMensagemWarning ? 'border-red-300 ring-1 ring-red-300' : ''}`}
+                  />
+                  <div className="flex items-center justify-between mt-1.5">
+                    {showMensagemWarning ? (
+                      <p className="text-red-400 text-xs">Escreva a frase da personalização antes de adicionar.</p>
+                    ) : (
+                      <span />
+                    )}
+                    <p className="text-[11px] text-subtexto shrink-0">
+                      {mensagemPersonalizada.length}/{MENSAGEM_PERSONALIZADA_MAX}
+                    </p>
+                  </div>
+                </div>
               )}
 
               <button

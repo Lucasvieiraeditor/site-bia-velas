@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Heart, Gift, Star, ArrowRight } from 'lucide-react'
@@ -6,8 +6,10 @@ import ScrollReveal from '../components/ScrollReveal'
 import ProductCard from '../components/ProductCard'
 import Footer from '../components/Footer'
 import PlusMinusIcon from '../components/PlusMinusIcon'
-import { featuredProducts } from '../data/products'
+import { featuredProducts as mockFeaturedProducts } from '../data/products'
+import { fetchFavoriteProducts, isSupabaseConfigured } from '../lib/supabase'
 import { SUBCATEGORIAS_COLECAO } from '../lib/subcategorias'
+import type { Product } from '../types'
 
 // ── Section heading — editorial, respira como revista de luxo ─────────────────
 
@@ -303,6 +305,28 @@ function ValueProps() {
 // ── Featured Products ─────────────────────────────────────────────────────────
 
 function FeaturedProducts() {
+  const [products, setProducts] = useState<Product[]>([])
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    if (!isSupabaseConfigured) {
+      // Ambiente local/dev sem Supabase configurado — usa produtos de exemplo só pra visualização.
+      setProducts(mockFeaturedProducts)
+      setLoaded(true)
+      return
+    }
+    fetchFavoriteProducts()
+      .then((data) => { if (!cancelled) setProducts(data) })
+      .catch(() => { if (!cancelled) setProducts([]) })
+      .finally(() => { if (!cancelled) setLoaded(true) })
+    return () => { cancelled = true }
+  }, [])
+
+  // Enquanto a Bia não marcar nenhum produto como favorito no painel admin, a seção
+  // fica escondida — nunca mostra produto fictício pro cliente real.
+  if (!loaded || products.length === 0) return null
+
   return (
     <section className="bg-offwhite py-28 md:py-36 px-5 md:px-8">
       <div className="max-w-6xl mx-auto">
@@ -315,7 +339,7 @@ function FeaturedProducts() {
         </ScrollReveal>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-8 md:gap-12">
-          {featuredProducts.map((product, i) => (
+          {products.map((product, i) => (
             <ProductCard key={product.id} product={product} delay={i * 0.1} />
           ))}
         </div>

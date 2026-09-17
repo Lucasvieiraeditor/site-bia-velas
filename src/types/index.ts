@@ -4,6 +4,7 @@ export interface Product {
   nome: string
   descricao: string
   aroma: string
+  cores?: string
   preco: number
   categoria: 'Coleção' | 'Lembrancinhas' | 'Kit' | 'Presente'
   subcategoria?: string
@@ -12,12 +13,16 @@ export interface Product {
   estoque: number
   ativo: boolean
   peso?: number
+  personalizavel?: boolean
+  favorito?: boolean
 }
 
 export interface CartItem {
   id: string
   product: Product
   aroma: string
+  cor?: string
+  mensagemPersonalizada?: string
   quantidade: number
 }
 
@@ -25,6 +30,8 @@ export interface OrderItem {
   produto_id: string
   nome: string
   aroma: string
+  cor?: string
+  mensagem_personalizada?: string
   preco: number
   quantidade: number
   imagem_url: string

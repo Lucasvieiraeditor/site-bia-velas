@@ -293,6 +293,8 @@ export default function Checkout() {
         produto_id: i.product.id,
         nome: i.product.nome,
         aroma: i.aroma,
+        ...(i.cor && { cor: i.cor }),
+        ...(i.mensagemPersonalizada && { mensagem_personalizada: i.mensagemPersonalizada }),
         preco: i.product.preco,
         quantidade: i.quantidade,
         imagem_url: i.product.imagem_url,
@@ -355,7 +357,9 @@ export default function Checkout() {
       const mpItems = [
         ...orderItems.map((i, idx) => ({
           title: i.nome,
-          description: i.aroma || '',
+          description: [i.aroma, i.cor, i.mensagem_personalizada && `"${i.mensagem_personalizada}"`]
+            .filter(Boolean)
+            .join(' · '),
           unit_price: mpPrices[idx],
           quantity: i.quantidade,
           currency_id: 'BRL',

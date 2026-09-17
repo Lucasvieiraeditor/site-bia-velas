@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Package, ShoppingBag, TrendingUp, Plus, Edit2, Trash2,
   Eye, EyeOff, X, Check, Loader2, Search, ChevronDown, UploadCloud,
-  AlertCircle, Truck, Tag
+  AlertCircle, Truck, Tag, Star
 } from 'lucide-react'
 import {
   supabase, signIn, signOut, getSession,
@@ -15,7 +15,7 @@ import {
   uploadProductImage, isSupabaseConfigured,
 } from '../lib/supabase'
 import { mockProducts } from '../data/products'
-import { parseAromas } from '../lib/aromas'
+import { parseAromas, parseCores } from '../lib/aromas'
 import { SUBCATEGORIAS_COLECAO } from '../lib/subcategorias'
 import type { Product, Order, OrderStatus, ProductCategory, Coupon, LojaConfig } from '../types'
 
@@ -241,9 +241,19 @@ function FreteGratisCard({
   )
 }
 
-// ── Aroma Tag Input ────────────────────────────────────────────────────────────
+// ── Tag Input (usado pra Aromas e Cores — digita, Enter ou vírgula, vira selo) ──
 
-function AromaTagInput({ value, onChange }: { value: string[]; onChange: (tags: string[]) => void }) {
+function TagInput({
+  value,
+  onChange,
+  placeholder,
+  ariaLabelPrefix,
+}: {
+  value: string[]
+  onChange: (tags: string[]) => void
+  placeholder: string
+  ariaLabelPrefix: string
+}) {
   const [input, setInput] = useState('')
 
   const addTag = (raw: string) => {
@@ -272,7 +282,7 @@ function AromaTagInput({ value, onChange }: { value: string[]; onChange: (tags: 
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={() => addTag(input)}
-        placeholder="Digite um aroma e pressione Enter ou vírgula"
+        placeholder={placeholder}
         className="input-field"
       />
       {value.length > 0 && (
@@ -287,7 +297,7 @@ function AromaTagInput({ value, onChange }: { value: string[]; onChange: (tags: 
                 type="button"
                 onClick={() => removeTag(tag)}
                 className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-rosa/30 text-subtexto hover:text-titulo transition-colors"
-                aria-label={`Remover aroma ${tag}`}
+                aria-label={`Remover ${ariaLabelPrefix} ${tag}`}
               >
                 <X size={10} />
               </button>
@@ -319,8 +329,11 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
     estoque: initial?.estoque?.toString() ?? '10',
     ativo: initial?.ativo ?? true,
     peso: initial?.peso?.toString() ?? '',
+    personalizavel: initial?.personalizavel ?? false,
+    favorito: initial?.favorito ?? false,
   })
   const [aromaTags, setAromaTags] = useState<string[]>(() => parseAromas(initial?.aroma))
+  const [corTags, setCorTags] = useState<string[]>(() => parseCores(initial?.cores))
   const [photos, setPhotos] = useState<string[]>(() => {
     if (initial?.imagens) return initial.imagens.split(',').filter(Boolean)
     if (initial?.imagem_url) return [initial.imagem_url]
@@ -389,6 +402,7 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
         nome: form.nome,
         descricao: form.descricao,
         aroma: aromaTags.join(', '),
+        cores: corTags.join(', '),
         preco: parseFloat(form.preco),
         categoria: form.categoria,
         subcategoria: form.categoria === 'Coleção' ? form.subcategoria : '',
@@ -396,6 +410,8 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
         ...(photos.length > 0 && { imagens: photos.join(',') }),
         estoque: parseInt(form.estoque) || 0,
         ativo: form.ativo,
+        personalizavel: form.personalizavel,
+        favorito: form.favorito,
         ...(form.peso ? { peso: parseInt(form.peso) } : {}),
       })
       onClose()
@@ -490,7 +506,22 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
 
           <div>
             <label className="label">Aromas</label>
-            <AromaTagInput value={aromaTags} onChange={setAromaTags} />
+            <TagInput
+              value={aromaTags}
+              onChange={setAromaTags}
+              placeholder="Digite um aroma e pressione Enter ou vírgula"
+              ariaLabelPrefix="aroma"
+            />
+          </div>
+
+          <div>
+            <label className="label">Cores</label>
+            <TagInput
+              value={corTags}
+              onChange={setCorTags}
+              placeholder="Digite uma cor e pressione Enter ou vírgula"
+              ariaLabelPrefix="cor"
+            />
           </div>
 
           <div>
@@ -536,10 +567,20 @@ function ProductForm({ initial, onSave, onClose }: ProductFormProps) {
             </div>
           )}
 
-          <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" checked={form.ativo} onChange={(e) => setForm((p) => ({ ...p, ativo: e.target.checked }))} className="w-4 h-4 accent-rosa rounded" />
-            <span className="text-sm text-titulo">Produto ativo (visível na loja)</span>
-          </label>
+          <div className="space-y-2.5">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={form.ativo} onChange={(e) => setForm((p) => ({ ...p, ativo: e.target.checked }))} className="w-4 h-4 accent-rosa rounded" />
+              <span className="text-sm text-titulo">Produto ativo (visível na loja)</span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={form.favorito} onChange={(e) => setForm((p) => ({ ...p, favorito: e.target.checked }))} className="w-4 h-4 accent-rosa rounded" />
+              <span className="text-sm text-titulo">Destacar em "Nossas Favoritas" na página inicial</span>
+            </label>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={form.personalizavel} onChange={(e) => setForm((p) => ({ ...p, personalizavel: e.target.checked }))} className="w-4 h-4 accent-rosa rounded" />
+              <span className="text-sm text-titulo">Produto personalizável (cliente escreve uma frase)</span>
+            </label>
+          </div>
 
           {error && (
             <div className="flex items-center gap-2 text-red-500 text-xs bg-red-50 rounded-lg px-3 py-2">
@@ -657,7 +698,10 @@ function OrderDetailModal({
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-titulo line-clamp-1">{item.nome}</p>
-                    <p className="text-xs text-subtexto">{item.aroma} · x{item.quantidade}</p>
+                    <p className="text-xs text-subtexto">{[item.aroma, item.cor].filter(Boolean).join(' · ')} · x{item.quantidade}</p>
+                    {item.mensagem_personalizada && (
+                      <p className="text-xs text-rosa italic mt-0.5">"{item.mensagem_personalizada}"</p>
+                    )}
                   </div>
                   <p className="text-sm font-medium text-dourado shrink-0">
                     R$ {(item.preco * item.quantidade).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
@@ -1377,7 +1421,12 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
                                   <img src={product.imagem_url} alt={product.nome} className="w-full h-full object-cover" />
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-titulo line-clamp-1">{product.nome}</p>
+                                  <p className="text-sm font-medium text-titulo line-clamp-1 flex items-center gap-1.5">
+                                    {product.nome}
+                                    {product.favorito && (
+                                      <Star size={12} className="text-dourado fill-dourado shrink-0" aria-label="Em destaque na página inicial" />
+                                    )}
+                                  </p>
                                   <p className="text-xs text-subtexto">{product.categoria}</p>
                                 </div>
                               </div>
@@ -1514,7 +1563,10 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
                             </div>
                             <div>
                               <p className="text-xs font-medium text-titulo leading-none">{item.nome}</p>
-                              <p className="text-[10px] text-subtexto mt-0.5">{item.aroma ? `${item.aroma} · ` : ''}x{item.quantidade}</p>
+                              <p className="text-[10px] text-subtexto mt-0.5">
+                                {[item.aroma, item.cor].filter(Boolean).join(' · ')}{(item.aroma || item.cor) ? ' · ' : ''}x{item.quantidade}
+                                {item.mensagem_personalizada && <span className="text-rosa"> · ✏️ personalizado</span>}
+                              </p>
                             </div>
                           </div>
                         ))}

@@ -108,9 +108,14 @@ export default function Cart() {
                       <p className="font-serif text-sm font-medium text-titulo leading-snug line-clamp-1">
                         {item.product.nome}
                       </p>
-                      {item.aroma && (
+                      {(item.aroma || item.cor) && (
                         <p className="text-[11px] text-subtexto uppercase tracking-wider mt-0.5 truncate">
-                          {item.aroma}
+                          {[item.aroma, item.cor].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
+                      {item.mensagemPersonalizada && (
+                        <p className="text-[11px] text-subtexto italic mt-0.5 truncate">
+                          "{item.mensagemPersonalizada}"
                         </p>
                       )}
                       <p className="price text-sm mt-1">

@@ -30,6 +30,19 @@ export async function fetchProducts(categoria?: string, subcategoria?: string): 
   return (data ?? []) as Product[]
 }
 
+// Produtos que a Bia marcou pra aparecer em "Nossas Favoritas" na página inicial.
+export async function fetchFavoriteProducts(): Promise<Product[]> {
+  const { data, error } = await supabase
+    .from('produtos_bia')
+    .select('*')
+    .eq('ativo', true)
+    .eq('favorito', true)
+    .order('created_at', { ascending: false })
+    .limit(6)
+  if (error) throw error
+  return (data ?? []) as Product[]
+}
+
 export async function fetchAllProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from('produtos_bia')

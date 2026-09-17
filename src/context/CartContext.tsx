@@ -7,20 +7,22 @@ interface CartState {
 }
 
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: { product: Product; aroma: string } }
+  | { type: 'ADD_ITEM'; payload: { product: Product; aroma: string; cor?: string; mensagemPersonalizada?: string } }
   | { type: 'REMOVE_ITEM'; payload: string }
   | { type: 'UPDATE_QUANTITY'; payload: { id: string; quantidade: number } }
   | { type: 'CLEAR_CART' }
 
-function cartItemId(productId: string, aroma: string) {
-  return `${productId}::${aroma}`
+// Cada mensagem personalizada é única — por isso entra na chave do item, senão
+// duas velas com frases diferentes se juntariam numa linha só no carrinho.
+function cartItemId(productId: string, aroma: string, cor?: string, mensagemPersonalizada?: string) {
+  return `${productId}::${aroma}::${cor ?? ''}::${mensagemPersonalizada ?? ''}`
 }
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case 'ADD_ITEM': {
-      const { product, aroma } = action.payload
-      const id = cartItemId(product.id, aroma)
+      const { product, aroma, cor, mensagemPersonalizada } = action.payload
+      const id = cartItemId(product.id, aroma, cor, mensagemPersonalizada)
       const existing = state.items.find((i) => i.id === id)
       if (existing) {
         return {
@@ -30,7 +32,7 @@ function cartReducer(state: CartState, action: CartAction): CartState {
           ),
         }
       }
-      return { ...state, items: [...state.items, { id, product, aroma, quantidade: 1 }] }
+      return { ...state, items: [...state.items, { id, product, aroma, cor, mensagemPersonalizada, quantidade: 1 }] }
     }
     case 'REMOVE_ITEM':
       return { ...state, items: state.items.filter((i) => i.id !== action.payload) }
@@ -59,7 +61,7 @@ interface CartContextValue {
   isOpen: boolean
   totalItems: number
   totalPrice: number
-  addItem: (product: Product, aroma?: string) => void
+  addItem: (product: Product, aroma?: string, cor?: string, mensagemPersonalizada?: string) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantidade: number) => void
   clearCart: () => void
@@ -77,8 +79,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const totalItems = state.items.reduce((acc, i) => acc + i.quantidade, 0)
   const totalPrice = state.items.reduce((acc, i) => acc + i.product.preco * i.quantidade, 0)
 
-  const addItem = (product: Product, aroma = '') => {
-    dispatch({ type: 'ADD_ITEM', payload: { product, aroma } })
+  const addItem = (product: Product, aroma = '', cor?: string, mensagemPersonalizada?: string) => {
+    dispatch({ type: 'ADD_ITEM', payload: { product, aroma, cor, mensagemPersonalizada } })
     setIsOpen(true)
   }
 
