@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { compressImage } from './imageCompression'
 import type { Product, Order, Coupon, LojaConfig } from '../types'
 
 const SUPABASE_URL = 'https://vnmqdyzjbtouanivsadf.supabase.co'
@@ -244,11 +245,16 @@ export async function updateLojaConfig(updates: Partial<LojaConfig>): Promise<Lo
 // ── Upload de imagem ─────────────────────────────────────────────────────────
 
 export async function uploadProductImage(file: File): Promise<string> {
-  const fileName = `${Date.now()}-${file.name}`
+  // Comprime antes de subir — fotos de celular chegam com vários MB e o site nunca
+  // precisa disso. Reduz o peso da página sem alterar a foto em si.
+  const optimized = await compressImage(file)
+  const fileName = `${Date.now()}-${optimized.name}`
 
+  // Nome do arquivo é único (timestamp) e nunca é sobrescrito (upsert: false),
+  // então é seguro guardar em cache por muito tempo — acelera visitas seguintes.
   const { error } = await supabase.storage
     .from('imagens-bia')
-    .upload(fileName, file, { cacheControl: '3600', upsert: false })
+    .upload(fileName, optimized, { cacheControl: '31536000', upsert: false })
 
   if (error) throw error
 

@@ -144,6 +144,7 @@ export default function Navbar() {
                   <img
                     src="https://vnmqdyzjbtouanivsadf.supabase.co/storage/v1/object/public/imagens-bia/LOGO%20NOVO.jpeg"
                     alt="By Biaggi"
+                    loading="lazy"
                     className="w-[140px] h-auto"
                     style={{ objectFit: 'contain' }}
                   />

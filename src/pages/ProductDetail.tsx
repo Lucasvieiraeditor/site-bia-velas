@@ -114,6 +114,7 @@ function ProductDetailView({ product }: { product: Product }) {
                     src={currentImage}
                     alt={product.nome}
                     onError={() => setImgError(true)}
+                    fetchPriority="high"
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -133,7 +134,7 @@ function ProductDetailView({ product }: { product: Product }) {
                         activeImage === i ? 'border-rosa' : 'border-transparent hover:border-[#D9CBB8]'
                       }`}
                     >
-                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      <img src={url} alt="" loading="lazy" className="w-full h-full object-cover" />
                     </button>
                   ))}
                 </div>
