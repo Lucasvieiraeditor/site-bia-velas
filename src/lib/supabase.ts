@@ -224,11 +224,11 @@ export async function deleteCoupon(id: string): Promise<void> {
 export async function fetchLojaConfig(): Promise<LojaConfig> {
   const { data, error } = await supabase
     .from('configuracoes_loja')
-    .select('frete_gratis_ativo, frete_gratis_valor_minimo')
+    .select('frete_gratis_ativo, frete_gratis_valor_minimo, frete_gratis_estados')
     .eq('id', 1)
     .maybeSingle()
   if (error) throw error
-  return data ?? { frete_gratis_ativo: false, frete_gratis_valor_minimo: null }
+  return data ?? { frete_gratis_ativo: false, frete_gratis_valor_minimo: null, frete_gratis_estados: null }
 }
 
 export async function updateLojaConfig(updates: Partial<LojaConfig>): Promise<LojaConfig> {
@@ -236,7 +236,7 @@ export async function updateLojaConfig(updates: Partial<LojaConfig>): Promise<Lo
     .from('configuracoes_loja')
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', 1)
-    .select('frete_gratis_ativo, frete_gratis_valor_minimo')
+    .select('frete_gratis_ativo, frete_gratis_valor_minimo, frete_gratis_estados')
     .single()
   if (error) throw error
   return data as LojaConfig

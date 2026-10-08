@@ -68,6 +68,7 @@ export interface Order {
 export interface LojaConfig {
   frete_gratis_ativo: boolean
   frete_gratis_valor_minimo: number | null
+  frete_gratis_estados: string[] | null
 }
 
 export interface Coupon {

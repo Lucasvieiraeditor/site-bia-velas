@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowLeft, Package, ShoppingBag, TrendingUp, Plus, Edit2, Trash2,
   Eye, EyeOff, X, Check, Loader2, Search, ChevronDown, UploadCloud,
-  AlertCircle, Truck, Tag, Star
+  AlertCircle, Truck, Tag, Star, MapPin
 } from 'lucide-react'
 import {
   supabase, signIn, signOut, getSession,
@@ -148,6 +148,11 @@ function StatCard({
 
 // ── Frete grátis (config da loja) ───────────────────────────────────────────
 
+const ESTADOS_BR = [
+  'AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT',
+  'PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO',
+] as const
+
 function FreteGratisCard({
   config,
   saving,
@@ -161,20 +166,41 @@ function FreteGratisCard({
   const [valorMinimo, setValorMinimo] = useState(
     config.frete_gratis_valor_minimo != null ? String(config.frete_gratis_valor_minimo) : '',
   )
+  const [estados, setEstados] = useState<string[]>(config.frete_gratis_estados ?? [])
+  const [showEstados, setShowEstados] = useState(false)
 
   useEffect(() => {
     setAtivo(config.frete_gratis_ativo)
     setValorMinimo(config.frete_gratis_valor_minimo != null ? String(config.frete_gratis_valor_minimo) : '')
+    setEstados(config.frete_gratis_estados ?? [])
   }, [config])
 
+  const configEstados = config.frete_gratis_estados ?? []
   const dirty =
     ativo !== config.frete_gratis_ativo ||
-    valorMinimo !== (config.frete_gratis_valor_minimo != null ? String(config.frete_gratis_valor_minimo) : '')
+    valorMinimo !== (config.frete_gratis_valor_minimo != null ? String(config.frete_gratis_valor_minimo) : '') ||
+    JSON.stringify([...estados].sort()) !== JSON.stringify([...configEstados].sort())
 
   const handleSave = () => {
     const parsed = valorMinimo.trim() ? parseFloat(valorMinimo.replace(',', '.')) : null
-    onSave({ frete_gratis_ativo: ativo, frete_gratis_valor_minimo: parsed && parsed > 0 ? parsed : null })
+    onSave({
+      frete_gratis_ativo: ativo,
+      frete_gratis_valor_minimo: parsed && parsed > 0 ? parsed : null,
+      frete_gratis_estados: estados.length > 0 ? estados : null,
+    })
   }
+
+  const toggleEstado = (uf: string) => {
+    setEstados((prev) => prev.includes(uf) ? prev.filter((e) => e !== uf) : [...prev, uf])
+  }
+
+  const todosSelected = estados.length === 0
+
+  const estadoLabel = todosSelected
+    ? 'Todos os estados'
+    : estados.length <= 3
+      ? estados.join(', ')
+      : `${estados.slice(0, 3).join(', ')} +${estados.length - 3}`
 
   return (
     <div className="bg-[#FAF7F2] rounded-2xl shadow-soft p-6 mb-6">
@@ -188,8 +214,8 @@ function FreteGratisCard({
             <p className="text-subtexto text-xs mt-0.5">
               {ativo
                 ? valorMinimo.trim()
-                  ? `Ativo · a partir de R$ ${valorMinimo}`
-                  : 'Ativo · grátis pra todo mundo'
+                  ? `Ativo · a partir de R$ ${valorMinimo} · ${estadoLabel}`
+                  : `Ativo · grátis pra todo mundo · ${estadoLabel}`
                 : 'Desativado no momento'}
             </p>
           </div>
@@ -208,21 +234,68 @@ function FreteGratisCard({
       </div>
 
       {ativo && (
-        <div className="mt-4 pt-4 border-t border-[#D9CBB8] flex items-center gap-3 flex-wrap">
-          <label className="text-sm text-subtexto">A partir de</label>
-          <div className="relative w-40">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-subtexto text-sm">R$</span>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={valorMinimo}
-              onChange={(e) => setValorMinimo(e.target.value.replace(/[^\d,.]/g, ''))}
-              placeholder="deixe vazio p/ todos"
-              className="input-field pl-9 py-2 text-sm"
-            />
+        <>
+          <div className="mt-4 pt-4 border-t border-[#D9CBB8] flex items-center gap-3 flex-wrap">
+            <label className="text-sm text-subtexto">A partir de</label>
+            <div className="relative w-40">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-subtexto text-sm">R$</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={valorMinimo}
+                onChange={(e) => setValorMinimo(e.target.value.replace(/[^\d,.]/g, ''))}
+                placeholder="deixe vazio p/ todos"
+                className="input-field pl-9 py-2 text-sm"
+              />
+            </div>
+            <p className="text-xs text-subtexto/70">Vazio = frete grátis pra todo mundo, sem valor mínimo.</p>
           </div>
-          <p className="text-xs text-subtexto/70">Vazio = frete grátis pra todo mundo, sem valor mínimo.</p>
-        </div>
+
+          <div className="mt-3 flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => setShowEstados((v) => !v)}
+              className="text-sm text-[#3D8B5E] font-medium text-left flex items-center gap-1.5"
+            >
+              <MapPin size={14} />
+              Estados: {estadoLabel}
+              <ChevronDown size={14} className={`transition-transform ${showEstados ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showEstados && (
+              <div className="bg-white rounded-xl border border-[#D9CBB8] p-3">
+                <button
+                  type="button"
+                  onClick={() => setEstados([])}
+                  className={`text-xs font-medium px-3 py-1.5 rounded-lg mb-2 transition-colors ${todosSelected ? 'bg-[#3D8B5E] text-white' : 'bg-[#F0EDE8] text-subtexto hover:bg-[#E5E0D8]'}`}
+                >
+                  Todos os estados
+                </button>
+                <div className="flex flex-wrap gap-1.5">
+                  {ESTADOS_BR.map((uf) => (
+                    <button
+                      key={uf}
+                      type="button"
+                      onClick={() => toggleEstado(uf)}
+                      className={`text-xs font-medium px-2.5 py-1.5 rounded-lg transition-colors ${
+                        estados.includes(uf)
+                          ? 'bg-[#3D8B5E] text-white'
+                          : 'bg-[#F0EDE8] text-subtexto hover:bg-[#E5E0D8]'
+                      }`}
+                    >
+                      {uf}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-subtexto/70 mt-2">
+                  {todosSelected
+                    ? 'Frete grátis pra todos os estados.'
+                    : `Frete grátis só pra: ${estados.join(', ')}.`}
+                </p>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {dirty && (
@@ -962,7 +1035,7 @@ function AdminDashboard({ onLogout: _onLogout }: { onLogout: () => void }) {
   const [newCoupon, setNewCoupon] = useState(false)
   const [deletingCouponId, setDeletingCouponId] = useState<string | null>(null)
   const [loadError, setLoadError] = useState('')
-  const [lojaConfig, setLojaConfig] = useState<LojaConfig>({ frete_gratis_ativo: false, frete_gratis_valor_minimo: null })
+  const [lojaConfig, setLojaConfig] = useState<LojaConfig>({ frete_gratis_ativo: false, frete_gratis_valor_minimo: null, frete_gratis_estados: null })
   const [savingLojaConfig, setSavingLojaConfig] = useState(false)
 
   const load = useCallback(async () => {

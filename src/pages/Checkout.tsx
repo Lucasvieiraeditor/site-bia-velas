@@ -117,7 +117,7 @@ export default function Checkout() {
   const [couponError, setCouponError] = useState<string | null>(null)
   const [applyingCoupon, setApplyingCoupon] = useState(false)
 
-  const [lojaConfig, setLojaConfig] = useState<LojaConfig>({ frete_gratis_ativo: false, frete_gratis_valor_minimo: null })
+  const [lojaConfig, setLojaConfig] = useState<LojaConfig>({ frete_gratis_ativo: false, frete_gratis_valor_minimo: null, frete_gratis_estados: null })
   useEffect(() => {
     if (!isSupabaseConfigured) return
     fetchLojaConfig().then(setLojaConfig).catch(() => {
@@ -135,7 +135,8 @@ export default function Checkout() {
     : 0
   const freeShippingApplies =
     lojaConfig.frete_gratis_ativo &&
-    (lojaConfig.frete_gratis_valor_minimo == null || totalPrice >= lojaConfig.frete_gratis_valor_minimo)
+    (lojaConfig.frete_gratis_valor_minimo == null || totalPrice >= lojaConfig.frete_gratis_valor_minimo) &&
+    (lojaConfig.frete_gratis_estados == null || lojaConfig.frete_gratis_estados.length === 0 || lojaConfig.frete_gratis_estados.includes(form.estado.toUpperCase()))
   const shippingCharge = botucatuCombinar ? 0 : freeShippingApplies ? 0 : (selectedShipping?.price ?? 0)
   const finalTotal = totalPrice + shippingCharge - discountValue
 
